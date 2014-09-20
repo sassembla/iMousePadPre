@@ -17,9 +17,13 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-
-    [self searchBonjourNetwork];
     
+    UITapGestureRecognizer *tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapped:)];
+    tapRecognizer.numberOfTapsRequired = 2;
+    tapRecognizer.numberOfTouchesRequired = 1;
+    
+    [self.view addGestureRecognizer:tapRecognizer];
+    [self searchBonjourNetwork];
 }
 
 #define BONJOUR_DOMAIN  (@"")
@@ -208,6 +212,20 @@ NSOutputStream *bonjourOutputStream;
         NSData *data = [sendString dataUsingEncoding:NSUTF8StringEncoding];
         [bonjourOutputStream write:[data bytes] maxLength:[data length]];
     }
+}
+
+
+/**
+ iOS側の切断の際、データがドカッと送られる(のか、読み終わりがわからないのどっちか)のケースがあるみたいだ。
+ 困る。netServiceDidStopが関係してそう、、でもないか。
+ exitで何かやれば完了すると思う。ぶっちぎるのが不味いみたいだ。
+ ぶっちぎれたのを検出できないのかな。
+ */
+
+- (void) doubleTapped:(id)sender {
+    NSLog(@"doubleTapped!");
+    bonjourService.delegate = nil;
+    [bonjourService stop];
 }
 
 

@@ -42,7 +42,7 @@ NSFileHandle* bonjourDataReadHandle;
 
 - (void) publishBonjourNetService {
     bonjourSocket = [[NSSocketPort alloc] initWithTCPPort:PORT_NUMBER];
-    
+
     if (bonjourSocket) {
         bonjourService = [[NSNetService alloc]initWithDomain:BONJOUR_DOMAIN type:BONJOUR_TYPE name:BONJOUR_NAME port:PORT_NUMBER
                           ];
@@ -54,7 +54,7 @@ NSFileHandle* bonjourDataReadHandle;
             NSLog(@"invalid NSNetSevice");
         }
     } else {
-        NSLog(@"invalid NSSocketPort");
+        NSLog(@"failed to create NSSocketPort, maybe doesn't close? %d", PORT_NUMBER);
     }
 }
 
@@ -153,15 +153,17 @@ NSFileHandle* bonjourDataReadHandle;
      */
 //    NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 //    NSLog(@"%@", string);
-
     [bonjourDataReadHandle waitForDataInBackgroundAndNotify];
+    NSLog(@"ovr!");
 }
 
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
     NSLog(@"close port!!");
-    [bonjourSocket invalidate];
+//    [bonjourSocket invalidate];関係ない。効果がないのつらいなー。
     
+//    [bonjourService stop];
+//    [bonjourDataReadHandle closeFile];
     
     /**
      通知を外す(接続が確立してない場合でも消す)
