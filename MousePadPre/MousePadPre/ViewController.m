@@ -38,6 +38,7 @@ NSOutputStream *bonjourOutputStream;
 
 
 - (void) searchBonjourNetwork {
+    NSLog(@"start searching..");
     bonjourBrowser = [[NSNetServiceBrowser alloc] init];
     bonjourBrowser.delegate = self;
     [bonjourBrowser searchForServicesOfType:BONJOUR_TYPE inDomain:BONJOUR_DOMAIN];
@@ -89,13 +90,11 @@ NSOutputStream *bonjourOutputStream;
 /* Sent to the NSNetServiceBrowser instance's delegate for each service discovered. If there are more services, moreComing will be YES. If for some reason handling discovered services requires significant processing, accumulating services until moreComing is NO and then doing the processing in bulk fashion may be desirable.
  */
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didFindService:(NSNetService *)aNetService moreComing:(BOOL)moreComing {
-//    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"network connection found"
-//                                                    message:@"hyahha-!"
-//                                                   delegate:nil
-//                                          cancelButtonTitle:@"OK"
-//                                          otherButtonTitles:nil];
-//    [alert show];
-    
+    /**
+     クライアントだけをカットすると、
+     3回目以降でサーバ側がなんもできなくなるので、
+     根本からの接続ポイント作り直しをオートマチックに行う仕掛けが必要そう。
+     */
     NSLog(@"connected");
     bonjourService = [[NSNetService alloc] initWithDomain:[aNetService domain] type:[aNetService type] name:[aNetService name]];
     
@@ -201,6 +200,7 @@ NSOutputStream *bonjourOutputStream;
 /**
  NSStreamのdelegate
  */
+
 /**
  NSStreamEventNone = 0,
  NSStreamEventOpenCompleted = 1UL << 0,
@@ -210,25 +210,33 @@ NSOutputStream *bonjourOutputStream;
  NSStreamEventEndEncountered = 1UL << 4
  */
 - (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode {
-    switch (eventCode) {
-        case NSStreamEventOpenCompleted:{
-            NSLog(@"stream opened.");
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"network connection found"
-                                                            message:@"hyahha-!"
-                                                           delegate:nil
-                                                  cancelButtonTitle:@"OK"
-                                                  otherButtonTitles:nil];
-            [alert show];
-            break;
-        }
-            
-        case NSStreamEventEndEncountered:
-            NSLog(@"stream ended.");
-            break;
-        default:
-            NSLog(@"handleEvent %lu", eventCode);
-            break;
+    
+    if ((eventCode & NSStreamEventOpenCompleted) != 0) {
+        NSLog(@"NSStreamEventOpenCompleted");
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"network connection found"
+                                                        message:@"hyahha-!"
+                                                       delegate:nil
+                                              cancelButtonTitle:@"OK"
+                                              otherButtonTitles:nil];
+        [alert show];
     }
+    
+    if ((eventCode & NSStreamEventHasBytesAvailable) != 0) {
+        NSLog(@"NSStreamEventHasBytesAvailable");
+    }
+    
+    if ((eventCode & NSStreamEventHasSpaceAvailable) != 0) {
+        NSLog(@"NSStreamEventHasSpaceAvailable");
+    }
+    
+    if ((eventCode & NSStreamEventErrorOccurred) != 0) {
+        NSLog(@"NSStreamEventErrorOccurred");
+    }
+    
+    if ((eventCode & NSStreamEventEndEncountered) != 0) {
+        NSLog(@"NSStreamEventEndEncountered");
+    }
+    
 }
 
 

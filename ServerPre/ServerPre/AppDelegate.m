@@ -164,6 +164,7 @@ NSFileHandle *bonjourDataReadHandle;
     [bonjourDataReadHandle waitForDataInBackgroundAndNotify];
 }
 
+
 - (void) receiveData:(NSNotification *)notif {
     NSData *data = [bonjourDataReadHandle availableData];
     
@@ -179,32 +180,32 @@ NSFileHandle *bonjourDataReadHandle;
     if ([data length] == 0) {
 //        閉じよう。
         [[NSNotificationCenter defaultCenter] removeObserver:self name:NSFileHandleDataAvailableNotification object:bonjourDataReadHandle];
-        [bonjourDataReadHandle closeFile];
+//        [bonjourDataReadHandle closeFile];
         
         
 //        [bonjourDataReadHandle ]
-        NSLog(@"closed. ready for reconnect %@", bonjourDataReadHandle);
+        NSLog(@"closed. ready for reconnect");
 //        [bonjourDataReadHandle ]
 //        [bonjourService removeFromRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
 //        [bonjourService stop];
         return;
     }
-    
+    NSLog(@"continue!");
     [bonjourDataReadHandle waitForDataInBackgroundAndNotify];
 }
 
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
     NSLog(@"close port!!");
-//    [bonjourSocket invalidate];関係ない。効果がないのつらいなー。
+    [bonjourSocket invalidate];//関係ない。効果がないのつらいなー。
     
 
     [bonjourService removeFromRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
     [bonjourService stop];
-//    [bonjourDataReadHandle closeFile];
+    
     
     /**
-     通知を外す(接続が確立してない場合でも消す)
+     すべての通知を外す(接続が確立してない場合でも消す)
      */
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
