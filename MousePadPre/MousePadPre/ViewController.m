@@ -81,6 +81,9 @@ NSOutputStream *bonjourOutputStream;
  */
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didRemoveService:(NSNetService *)aNetService moreComing:(BOOL)moreComing {
     NSLog(@"didRemoveService");
+    /**
+     サーバ側が停止したり、圏外に出ることで発行される。
+     */
 }
 
 /* Sent to the NSNetServiceBrowser instance's delegate for each service discovered. If there are more services, moreComing will be YES. If for some reason handling discovered services requires significant processing, accumulating services until moreComing is NO and then doing the processing in bulk fashion may be desirable.
@@ -150,8 +153,11 @@ NSOutputStream *bonjourOutputStream;
     bool result = [sender getInputStream:&inputStream outputStream:&bonjourOutputStream];
 
     if (result) {
+        bonjourOutputStream.delegate = self;
+        
         [bonjourOutputStream open];
         [bonjourOutputStream scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+
         NSLog(@"netServiceDidResolveAddress over");
     } else {
         NSLog(@"failed to ready stream toward connection");
@@ -193,6 +199,42 @@ NSOutputStream *bonjourOutputStream;
 
 
 /**
+ NSStreamのdelegate
+ */
+/**
+ NSStreamEventNone = 0,
+ NSStreamEventOpenCompleted = 1UL << 0,
+ NSStreamEventHasBytesAvailable = 1UL << 1,
+ NSStreamEventHasSpaceAvailable = 1UL << 2,
+ NSStreamEventErrorOccurred = 1UL << 3,
+ NSStreamEventEndEncountered = 1UL << 4
+ */
+- (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode {
+    switch (eventCode) {
+        case NSStreamEventOpenCompleted:{
+            NSLog(@"stream opened.");
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"network connection found"
+                                                            message:@"hyahha-!"
+                                                           delegate:nil
+                                                  cancelButtonTitle:@"OK"
+                                                  otherButtonTitles:nil];
+            [alert show];
+            break;
+        }
+            
+        case NSStreamEventEndEncountered:
+            NSLog(@"stream ended.");
+            break;
+        default:
+            NSLog(@"handleEvent %lu", eventCode);
+            break;
+    }
+}
+
+
+
+
+/**
  マウス挙動
  */
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
@@ -216,16 +258,16 @@ NSOutputStream *bonjourOutputStream;
 
 
 /**
- iOS側の切断の際、データがドカッと送られる(のか、読み終わりがわからないのどっちか)のケースがあるみたいだ。
- 困る。netServiceDidStopが関係してそう、、でもないか。
- exitで何かやれば完了すると思う。ぶっちぎるのが不味いみたいだ。
- ぶっちぎれたのを検出できないのかな。
+ outputがcloseすると向こう側がめっちゃ不味い。
+ どうやって備えよう。なんか切断サイン送って穏便にしとめたいところ。
  */
 
 - (void) doubleTapped:(id)sender {
-    NSLog(@"doubleTapped!");
-    bonjourService.delegate = nil;
-    [bonjourService stop];
+//    NSLog(@"doubleTapped!");
+////    [bonjourOutputStream close];// このイベントの時点で相手側が不味いことになる。
+//    [bonjourOutputStream removeFromRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+//    bonjourService.delegate = nil;
+//    [bonjourService stop];
 }
 
 

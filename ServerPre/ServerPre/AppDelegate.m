@@ -7,6 +7,8 @@
 //
 
 #import "AppDelegate.h"
+#include <netinet/in.h>
+
 @interface AppDelegate ()
 @property (weak) IBOutlet NSWindow *window;
 @end
@@ -20,31 +22,40 @@
  */
 @implementation AppDelegate
 
-
-#define PORT_NUMBER     (8823)
+#define BONJOUR_PORT    (8823)
 #define BONJOUR_DOMAIN  (@"")
 #define BONJOUR_TYPE    (@"_mousepad._tcp")// _test._tcp _始まりで、protocolを書く。
 #define BONJOUR_NAME    (@"hello!")
 
 
 
-NSSocketPort* bonjourSocket;
+NSSocketPort *bonjourSocket;
 NSNetService *bonjourService;
 NSFileHandle *bonjourSocketHandle;
-NSFileHandle* bonjourDataReadHandle;
+NSFileHandle *bonjourDataReadHandle;
 
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     [self publishBonjourNetService];
 }
 
-
-
 - (void) publishBonjourNetService {
-    bonjourSocket = [[NSSocketPort alloc] initWithTCPPort:PORT_NUMBER];
-
+    bonjourSocket = [[NSSocketPort alloc] initWithTCPPort:BONJOUR_PORT];
+//    bonjourSocket = [[NSSocketPort alloc]initWithTCPPort:<#(unsigned short)#>];
+    bonjourSocket.delegate = self;
+    
     if (bonjourSocket) {
-        bonjourService = [[NSNetService alloc]initWithDomain:BONJOUR_DOMAIN type:BONJOUR_TYPE name:BONJOUR_NAME port:PORT_NUMBER
+        
+        UInt8 portNum = 0;
+        struct sockaddr_in *addr4;
+        NSData *data = [bonjourSocket address];
+        if (data) {
+            addr4 = (struct sockaddr_in *)[data bytes];
+            portNum = ntohs(addr4->sin_port);
+        }
+
+        
+        bonjourService = [[NSNetService alloc]initWithDomain:BONJOUR_DOMAIN type:BONJOUR_TYPE name:BONJOUR_NAME port:BONJOUR_PORT
                           ];
         if (bonjourService) {
             bonjourService.delegate = self;
@@ -54,12 +65,20 @@ NSFileHandle* bonjourDataReadHandle;
             NSLog(@"invalid NSNetSevice");
         }
     } else {
-        NSLog(@"failed to create NSSocketPort, maybe doesn't close? %d", PORT_NUMBER);
+        NSLog(@"failed to create NSSocketPort, maybe doesn't close? %@", bonjourSocket);
     }
 }
 
 /**
- デリゲート
+ NSPortのデリゲート
+ */
+- (void)handlePortMessage:(NSPortMessage *)message {
+    NSLog(@"handlePortMessage %@", message);
+}
+
+
+/**
+ NSNetServiceDelegateのデリゲート
  */
 /* Sent to the NSNetService instance's delegate prior to advertising the service on the network. If for some reason the service cannot be published, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotPublish: method.
  */
@@ -137,6 +156,7 @@ NSFileHandle* bonjourDataReadHandle;
 
 
 - (void) acceptConnection:(NSNotification *)notif {
+    NSLog(@"accept!!");
     bonjourDataReadHandle = [[notif userInfo] objectForKey:NSFileHandleNotificationFileHandleItem];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receiveData:) name:NSFileHandleDataAvailableNotification object:bonjourDataReadHandle];
@@ -153,8 +173,24 @@ NSFileHandle* bonjourDataReadHandle;
      */
 //    NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 //    NSLog(@"%@", string);
+    
+    NSLog(@"ovr! %lu", (unsigned long)[data length]);
+    
+    if ([data length] == 0) {
+//        閉じよう。
+        [[NSNotificationCenter defaultCenter] removeObserver:self name:NSFileHandleDataAvailableNotification object:bonjourDataReadHandle];
+        [bonjourDataReadHandle closeFile];
+        
+        
+//        [bonjourDataReadHandle ]
+        NSLog(@"closed. ready for reconnect %@", bonjourDataReadHandle);
+//        [bonjourDataReadHandle ]
+//        [bonjourService removeFromRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+//        [bonjourService stop];
+        return;
+    }
+    
     [bonjourDataReadHandle waitForDataInBackgroundAndNotify];
-    NSLog(@"ovr!");
 }
 
 
@@ -162,7 +198,9 @@ NSFileHandle* bonjourDataReadHandle;
     NSLog(@"close port!!");
 //    [bonjourSocket invalidate];関係ない。効果がないのつらいなー。
     
-//    [bonjourService stop];
+
+    [bonjourService removeFromRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+    [bonjourService stop];
 //    [bonjourDataReadHandle closeFile];
     
     /**
