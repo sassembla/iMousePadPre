@@ -213,12 +213,12 @@ NSOutputStream *bonjourOutputStream;
     
     if ((eventCode & NSStreamEventOpenCompleted) != 0) {
         NSLog(@"NSStreamEventOpenCompleted");
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"network connection found"
-                                                        message:@"hyahha-!"
-                                                       delegate:nil
-                                              cancelButtonTitle:@"OK"
-                                              otherButtonTitles:nil];
-        [alert show];
+//        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"network connection found"
+//                                                        message:@"hyahha-!"
+//                                                       delegate:nil
+//                                              cancelButtonTitle:@"OK"
+//                                              otherButtonTitles:nil];
+//        [alert show];
     }
     
     if ((eventCode & NSStreamEventHasBytesAvailable) != 0) {
@@ -226,7 +226,7 @@ NSOutputStream *bonjourOutputStream;
     }
     
     if ((eventCode & NSStreamEventHasSpaceAvailable) != 0) {
-        NSLog(@"NSStreamEventHasSpaceAvailable");
+//        NSLog(@"NSStreamEventHasSpaceAvailable");
     }
     
     if ((eventCode & NSStreamEventErrorOccurred) != 0) {
@@ -246,23 +246,41 @@ NSOutputStream *bonjourOutputStream;
  マウス挙動
  */
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-    NSLog(@"touch began!");
+    for (UITouch *touch in touches) {
+        CGPoint p = [touch locationInView:self.view];
+        
+        NSData *pointData = [NSData dataWithBytes:&p length:sizeof(CGPoint)];
+
+        if (bonjourOutputStream) {
+            [bonjourOutputStream write:[pointData bytes] maxLength:[pointData length]];
+        }
+    }
 }
 
 - (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
-    NSLog(@"moved");
-    
+    for (UITouch *touch in touches) {
+        CGPoint p = [touch locationInView:self.view];
+        
+        NSData *pointData = [NSData dataWithBytes:&p length:sizeof(CGPoint)];
+        
+        if (bonjourOutputStream) {
+            [bonjourOutputStream write:[pointData bytes] maxLength:[pointData length]];
+        }
+    }
 }
 
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-    NSLog(@"end!");
-    
-    if (bonjourOutputStream) {
-        NSString *sendString = @"from pad";
-        NSData *data = [sendString dataUsingEncoding:NSUTF8StringEncoding];
-        [bonjourOutputStream write:[data bytes] maxLength:[data length]];
+    for (UITouch *touch in touches) {
+        CGPoint p = [touch locationInView:self.view];
+        
+        NSData *pointData = [NSData dataWithBytes:&p length:sizeof(CGPoint)];
+        
+        if (bonjourOutputStream) {
+            [bonjourOutputStream write:[pointData bytes] maxLength:[pointData length]];
+        }
     }
 }
+
 
 
 /**

@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #include <netinet/in.h>
+#include <Carbon/Carbon.h>
 
 @interface AppDelegate ()
 @property (weak) IBOutlet NSWindow *window;
@@ -15,16 +16,13 @@
 
 
 
-
 /**
- こいつを改造していって、接続だけの状態にする。
- また接続の条件を割り出す。
+ ポートの自由化はできた。
  */
 @implementation AppDelegate
 
-#define BONJOUR_PORT    (8823)
 #define BONJOUR_DOMAIN  (@"")
-#define BONJOUR_TYPE    (@"_mousepad._tcp")// _test._tcp _始まりで、protocolを書く。
+#define BONJOUR_TYPE    (@"_mousepad._tcp")// _始まりで、protocolを書く。
 #define BONJOUR_NAME    (@"hello!")
 
 
@@ -40,41 +38,42 @@ NSFileHandle *bonjourDataReadHandle;
 }
 
 - (void) publishBonjourNetService {
-    bonjourSocket = [[NSSocketPort alloc] initWithTCPPort:BONJOUR_PORT];
-//    bonjourSocket = [[NSSocketPort alloc]initWithTCPPort:<#(unsigned short)#>];
+    bonjourSocket = [[NSSocketPort alloc] init];
     bonjourSocket.delegate = self;
-    
-    if (bonjourSocket) {
-        
-        UInt8 portNum = 0;
-        struct sockaddr_in *addr4;
-        NSData *data = [bonjourSocket address];
-        if (data) {
-            addr4 = (struct sockaddr_in *)[data bytes];
-            portNum = ntohs(addr4->sin_port);
-        }
 
-        
-        bonjourService = [[NSNetService alloc]initWithDomain:BONJOUR_DOMAIN type:BONJOUR_TYPE name:BONJOUR_NAME port:BONJOUR_PORT
-                          ];
-        if (bonjourService) {
-            bonjourService.delegate = self;
-            [bonjourService scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
-            [bonjourService publish];
-        } else {
-            NSLog(@"invalid NSNetSevice");
-        }
+    /**
+     自動的にportがわりあてられないほど混雑していたら、エラーでやり直す
+     */
+    if (!bonjourSocket) return;
+    
+
+    struct sockaddr_in addr = *((struct sockaddr_in *)[[bonjourSocket address] bytes]);
+    socklen_t len = sizeof(addr);
+    
+    
+    /**
+     使用しているport番号を取得
+     取得失敗したらエラーでやり直す
+     */
+    if (getsockname([bonjourSocket socket], (struct sockaddr *)&addr, &len) == -1) return;
+    
+    
+    int portNumber = ntohs(addr.sin_port);
+    
+    /**
+     bonjourで使用するサービスに関連づける
+     失敗したらエラーでbonjourService取得からやり直す
+     */
+    bonjourService = [[NSNetService alloc]initWithDomain:BONJOUR_DOMAIN type:BONJOUR_TYPE name:BONJOUR_NAME port:portNumber];
+    if (bonjourService) {
+        bonjourService.delegate = self;
+        [bonjourService scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+        [bonjourService publish];
     } else {
-        NSLog(@"failed to create NSSocketPort, maybe doesn't close? %@", bonjourSocket);
+        NSLog(@"invalid NSNetSevice");
     }
 }
 
-/**
- NSPortのデリゲート
- */
-- (void)handlePortMessage:(NSPortMessage *)message {
-    NSLog(@"handlePortMessage %@", message);
-}
 
 
 /**
@@ -83,14 +82,12 @@ NSFileHandle *bonjourDataReadHandle;
 /* Sent to the NSNetService instance's delegate prior to advertising the service on the network. If for some reason the service cannot be published, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotPublish: method.
  */
 - (void)netServiceWillPublish:(NSNetService *)sender {
-    NSLog(@"netServiceWillPublish");
+    NSLog(@"netServiceWillPublish %@", sender);
 }
 
 /* Sent to the NSNetService instance's delegate when the publication of the instance is complete and successful.
  */
 - (void)netServiceDidPublish:(NSNetService *)sender {
-    NSLog(@"netServiceDidPublish %@", sender);
-    
     
     bonjourSocketHandle = [[NSFileHandle alloc] initWithFileDescriptor:[bonjourSocket socket] closeOnDealloc:YES];
     if (bonjourSocketHandle) {
@@ -100,6 +97,8 @@ NSFileHandle *bonjourDataReadHandle;
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(acceptConnection:) name:NSFileHandleConnectionAcceptedNotification object:bonjourSocketHandle];
         
         [bonjourSocketHandle acceptConnectionInBackgroundAndNotify];
+    } else {
+        NSLog(@"netServiceDidPublish failed to generate bonjourSocketHandle");
     }
 }
 
@@ -159,9 +158,23 @@ NSFileHandle *bonjourDataReadHandle;
     NSLog(@"accept!!");
     bonjourDataReadHandle = [[notif userInfo] objectForKey:NSFileHandleNotificationFileHandleItem];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receiveData:) name:NSFileHandleDataAvailableNotification object:bonjourDataReadHandle];
-    
-    [bonjourDataReadHandle waitForDataInBackgroundAndNotify];
+    /**
+     Bonjour越しのデータを受け取るハンドラ
+     */
+    bonjourDataReadHandle.readabilityHandler = ^(NSFileHandle *fileHandle) {
+
+        NSData *data = [fileHandle availableData];
+        
+        NSLog(@"len %lu", (unsigned long)[data length]);
+        
+        CGPoint point;
+        [data getBytes:&point length:sizeof(CGPoint)];
+        
+        CGEventRef move1 = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, CGPointMake(point.x, point.y), kCGMouseButtonLeft );
+        CGEventPost(kCGHIDEventTap, move1);
+        CFRelease(move1);
+        
+    };
 }
 
 
@@ -175,35 +188,70 @@ NSFileHandle *bonjourDataReadHandle;
 //    NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 //    NSLog(@"%@", string);
     
-    NSLog(@"ovr! %lu", (unsigned long)[data length]);
     
     if ([data length] == 0) {
 //        閉じよう。
-        [[NSNotificationCenter defaultCenter] removeObserver:self name:NSFileHandleDataAvailableNotification object:bonjourDataReadHandle];
+//        [[NSNotificationCenter defaultCenter] removeObserver:self name:NSFileHandleDataAvailableNotification object:bonjourDataReadHandle];
 //        [bonjourDataReadHandle closeFile];
         
         
 //        [bonjourDataReadHandle ]
-        NSLog(@"closed. ready for reconnect");
+//        NSLog(@"closed. ready for reconnect");
 //        [bonjourDataReadHandle ]
 //        [bonjourService removeFromRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
 //        [bonjourService stop];
         return;
     }
-    NSLog(@"continue!");
-    [bonjourDataReadHandle waitForDataInBackgroundAndNotify];
+    
+//    [bonjourDataReadHandle waitForDataInBackgroundAndNotify];
+    
+    /**
+     この位置にマウスを持っていく
+     */
+//    int posx = 200;
+//    int posy = 200;
+    
+//    CGEventRef move1 = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, CGPointMake(posx, posy), kCGMouseButtonLeft );
+//    CGEventPost(kCGHIDEventTap, move1);
+//    CFRelease(move1);
+    
+    
+   /**
+    左/右/ ボタン
+    */
+//    CGEventRef downLeft = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseDown, CGPointMake(posx, posy), kCGMouseButtonLeft);
+//    CGEventPost(kCGHIDEventTap, downLeft);
+//    CFRelease(downLeft);
+    
+//    CGEventRef downRight = CGEventCreateMouseEvent(NULL, kCGEventRightMouseDown, CGPointMake(posx, posy), kCGMouseButtonLeft);
+    
+//    CGEventRef keyA = CGEventCreateKeyboardEvent (NULL, (CGKeyCode)52, true);
+//    CGEventPost(kCGEventKeyDown, keyA);
+//    CFRelease(keyA);
+    
+    
+//    CGEventRef keyP = CGEventCreateKeyboardEvent(NULL, kVK_ANSI_P, true);
+//    CGEventPost(kCGSessionEventTap, keyP);
+//    CFRelease(keyP);
+    
+//    CGEventRef keyP = CGEventCreateKeyboardEvent(NULL, kVK_ANSI_P, true);
+//    CGEventPost(kCGSessionEventTap, keyP);
+//    CFRelease(keyP);
+    
+    
+    /**
+     エンター単体を押すアクション
+     キーを離すのに対応してない。
+     */
+//    CGEventRef tapEnter = CGEventCreateKeyboardEvent (NULL, (CGKeyCode)52, true);
+//    CGEventPost(kCGSessionEventTap, tapEnter);
+//    CFRelease(tapEnter);
 }
 
 
-- (void)applicationWillTerminate:(NSNotification *)aNotification {
-    NSLog(@"close port!!");
-    [bonjourSocket invalidate];//関係ない。効果がないのつらいなー。
-    
 
-    [bonjourService removeFromRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
-    [bonjourService stop];
-    
-    
+
+- (void)applicationWillTerminate:(NSNotification *)aNotification {
     /**
      すべての通知を外す(接続が確立してない場合でも消す)
      */
