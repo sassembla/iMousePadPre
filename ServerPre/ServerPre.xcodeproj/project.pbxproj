@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		335C359319D17C1A004CD23C /* TimeMine.m in Sources */ = {isa = PBXBuildFile; fileRef = 335C359219D17C1A004CD23C /* TimeMine.m */; };
 		33FA778119CABCF600D5C113 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 33FA778019CABCF600D5C113 /* main.m */; };
 		33FA778419CABCF600D5C113 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 33FA778319CABCF600D5C113 /* AppDelegate.m */; };
-		33FA778619CABCF600D5C113 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 33FA778519CABCF600D5C113 /* Images.xcassets */; };
 		33FA778919CABCF600D5C113 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33FA778719CABCF600D5C113 /* MainMenu.xib */; };
 		33FA779519CABCF600D5C113 /* ServerPreTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33FA779419CABCF600D5C113 /* ServerPreTests.m */; };
 /* End PBXBuildFile section */
@@ -25,12 +25,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		335C359119D17C1A004CD23C /* TimeMine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimeMine.h; sourceTree = "<group>"; };
+		335C359219D17C1A004CD23C /* TimeMine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimeMine.m; sourceTree = "<group>"; };
 		33FA777B19CABCF600D5C113 /* ServerPre.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ServerPre.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		33FA777F19CABCF600D5C113 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		33FA778019CABCF600D5C113 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		33FA778219CABCF600D5C113 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		33FA778319CABCF600D5C113 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		33FA778519CABCF600D5C113 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		33FA778819CABCF600D5C113 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		33FA778E19CABCF600D5C113 /* ServerPreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ServerPreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		33FA779319CABCF600D5C113 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -55,9 +56,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		335C359419D17C1D004CD23C /* TimeAssert */ = {
+			isa = PBXGroup;
+			children = (
+				335C359119D17C1A004CD23C /* TimeMine.h */,
+				335C359219D17C1A004CD23C /* TimeMine.m */,
+			);
+			name = TimeAssert;
+			sourceTree = "<group>";
+		};
 		33FA777219CABCF600D5C113 = {
 			isa = PBXGroup;
 			children = (
+				335C359419D17C1D004CD23C /* TimeAssert */,
 				33FA777D19CABCF600D5C113 /* ServerPre */,
 				33FA779119CABCF600D5C113 /* ServerPreTests */,
 				33FA777C19CABCF600D5C113 /* Products */,
@@ -78,7 +89,6 @@
 			children = (
 				33FA778219CABCF600D5C113 /* AppDelegate.h */,
 				33FA778319CABCF600D5C113 /* AppDelegate.m */,
-				33FA778519CABCF600D5C113 /* Images.xcassets */,
 				33FA778719CABCF600D5C113 /* MainMenu.xib */,
 				33FA777E19CABCF600D5C113 /* Supporting Files */,
 			);
@@ -191,7 +201,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				33FA778619CABCF600D5C113 /* Images.xcassets in Resources */,
 				33FA778919CABCF600D5C113 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -212,6 +221,7 @@
 			files = (
 				33FA778419CABCF600D5C113 /* AppDelegate.m in Sources */,
 				33FA778119CABCF600D5C113 /* main.m in Sources */,
+				335C359319D17C1A004CD23C /* TimeMine.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -398,6 +408,7 @@
 				33FA779A19CABCF600D5C113 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		33FA779B19CABCF600D5C113 /* Build configuration list for PBXNativeTarget "ServerPreTests" */ = {
 			isa = XCConfigurationList;
@@ -406,6 +417,7 @@
 				33FA779D19CABCF600D5C113 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -14,6 +14,10 @@
 		330A2A2019CABBE300441A2A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 330A2A1F19CABBE300441A2A /* Images.xcassets */; };
 		330A2A2319CABBE300441A2A /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 330A2A2119CABBE300441A2A /* LaunchScreen.xib */; };
 		330A2A2F19CABBE300441A2A /* MousePadPreTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 330A2A2E19CABBE300441A2A /* MousePadPreTests.m */; };
+		335C358419D163D5004CD23C /* TimeMine.m in Sources */ = {isa = PBXBuildFile; fileRef = 335C358319D163D5004CD23C /* TimeMine.m */; };
+		335C358819D16C86004CD23C /* KeyboardButtonManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 335C358719D16C86004CD23C /* KeyboardButtonManager.m */; };
+		335C358B19D16EC1004CD23C /* KeyboardButtonObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 335C358A19D16EC1004CD23C /* KeyboardButtonObject.m */; };
+		335C358E19D17664004CD23C /* BonjourConnectionController.m in Sources */ = {isa = PBXBuildFile; fileRef = 335C358D19D17664004CD23C /* BonjourConnectionController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +44,14 @@
 		330A2A2819CABBE300441A2A /* MousePadPreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MousePadPreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		330A2A2D19CABBE300441A2A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		330A2A2E19CABBE300441A2A /* MousePadPreTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MousePadPreTests.m; sourceTree = "<group>"; };
+		335C358219D163D5004CD23C /* TimeMine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimeMine.h; sourceTree = "<group>"; };
+		335C358319D163D5004CD23C /* TimeMine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimeMine.m; sourceTree = "<group>"; };
+		335C358619D16C86004CD23C /* KeyboardButtonManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyboardButtonManager.h; sourceTree = "<group>"; };
+		335C358719D16C86004CD23C /* KeyboardButtonManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KeyboardButtonManager.m; sourceTree = "<group>"; };
+		335C358919D16EC1004CD23C /* KeyboardButtonObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyboardButtonObject.h; sourceTree = "<group>"; };
+		335C358A19D16EC1004CD23C /* KeyboardButtonObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KeyboardButtonObject.m; sourceTree = "<group>"; };
+		335C358C19D17664004CD23C /* BonjourConnectionController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BonjourConnectionController.h; sourceTree = "<group>"; };
+		335C358D19D17664004CD23C /* BonjourConnectionController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BonjourConnectionController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +75,7 @@
 		330A2A0619CABBE300441A2A = {
 			isa = PBXGroup;
 			children = (
+				335C358519D163DA004CD23C /* TimeAssert */,
 				330A2A1119CABBE300441A2A /* MousePadPre */,
 				330A2A2B19CABBE300441A2A /* MousePadPreTests */,
 				330A2A1019CABBE300441A2A /* Products */,
@@ -89,6 +102,11 @@
 				330A2A1F19CABBE300441A2A /* Images.xcassets */,
 				330A2A2119CABBE300441A2A /* LaunchScreen.xib */,
 				330A2A1219CABBE300441A2A /* Supporting Files */,
+				335C358619D16C86004CD23C /* KeyboardButtonManager.h */,
+				335C358719D16C86004CD23C /* KeyboardButtonManager.m */,
+				335C358919D16EC1004CD23C /* KeyboardButtonObject.h */,
+				335C358A19D16EC1004CD23C /* KeyboardButtonObject.m */,
+				335C359019D17673004CD23C /* BonjourConnection */,
 			);
 			path = MousePadPre;
 			sourceTree = "<group>";
@@ -117,6 +135,24 @@
 				330A2A2D19CABBE300441A2A /* Info.plist */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		335C358519D163DA004CD23C /* TimeAssert */ = {
+			isa = PBXGroup;
+			children = (
+				335C358219D163D5004CD23C /* TimeMine.h */,
+				335C358319D163D5004CD23C /* TimeMine.m */,
+			);
+			name = TimeAssert;
+			sourceTree = "<group>";
+		};
+		335C359019D17673004CD23C /* BonjourConnection */ = {
+			isa = PBXGroup;
+			children = (
+				335C358C19D17664004CD23C /* BonjourConnectionController.h */,
+				335C358D19D17664004CD23C /* BonjourConnectionController.m */,
+			);
+			name = BonjourConnection;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -221,8 +257,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				330A2A1B19CABBE300441A2A /* ViewController.m in Sources */,
+				335C358E19D17664004CD23C /* BonjourConnectionController.m in Sources */,
+				335C358819D16C86004CD23C /* KeyboardButtonManager.m in Sources */,
+				335C358419D163D5004CD23C /* TimeMine.m in Sources */,
 				330A2A1819CABBE300441A2A /* AppDelegate.m in Sources */,
 				330A2A1519CABBE300441A2A /* main.m in Sources */,
+				335C358B19D16EC1004CD23C /* KeyboardButtonObject.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

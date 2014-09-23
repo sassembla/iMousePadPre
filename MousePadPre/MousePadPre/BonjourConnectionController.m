@@ -1,29 +1,28 @@
 //
-//  ViewController.m
+//  BonjourConnectionController.m
 //  MousePadPre
 //
-//  Created by illusionismine on 2014/09/18.
+//  Created by illusionismine on 2014/09/23.
 //  Copyright (c) 2014年 KISSAKI. All rights reserved.
 //
 
-#import "ViewController.h"
+#import "BonjourConnectionController.h"
+#import "TimeMine.h"
 
-@interface ViewController ()
-@end
+@implementation BonjourConnectionController
 
-
-
-@implementation ViewController
-
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    
-    UITapGestureRecognizer *tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapped:)];
-    tapRecognizer.numberOfTapsRequired = 2;
-    tapRecognizer.numberOfTouchesRequired = 1;
-    
-    [self.view addGestureRecognizer:tapRecognizer];
-    [self searchBonjourNetwork];
+- (id) init {
+    if (self = [super init]) {
+        [TimeMine setTimeMineLocalizedFormat:@"2014/09/23 18:23:05" withLimitSec:10000 withComment:@"接続の状態をどこかに表示せんとなー感がある。切断とか"];
+        
+        [TimeMine setTimeMineLocalizedFormat:@"2014/09/23 18:44:12" withLimitSec:10000 withComment:@"接続の状態変化を通知する機構が必要。こいつは今後の奴でも必要なので、"];
+        
+        [TimeMine setTimeMineLocalizedFormat:@"2014/09/23 18:23:51" withLimitSec:10000 withComment:@"接続リトライ系の機構が必要。"];
+        
+        
+        [self searchBonjourNetwork];
+    }
+    return self;
 }
 
 #define BONJOUR_DOMAIN  (@"")
@@ -43,6 +42,8 @@ NSOutputStream *bonjourOutputStream;
     bonjourBrowser.delegate = self;
     [bonjourBrowser searchForServicesOfType:BONJOUR_TYPE inDomain:BONJOUR_DOMAIN];
 }
+
+
 
 
 /**
@@ -92,8 +93,10 @@ NSOutputStream *bonjourOutputStream;
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didFindService:(NSNetService *)aNetService moreComing:(BOOL)moreComing {
     /**
      クライアントだけをカットすると、
-     3回目以降でサーバ側がなんもできなくなるので、
+     n回目以降でサーバ側がなんもできなくなるので、
      根本からの接続ポイント作り直しをオートマチックに行う仕掛けが必要そう。
+     
+     nは通信方式の数に依存。勝手にlocalとか着いてるからな。。
      */
     NSLog(@"connected");
     bonjourService = [[NSNetService alloc] initWithDomain:[aNetService domain] type:[aNetService type] name:[aNetService name]];
@@ -146,17 +149,16 @@ NSOutputStream *bonjourOutputStream;
  */
 - (void)netServiceDidResolveAddress:(NSNetService *)sender {
     NSLog(@"netServiceDidResolveAddress");
-    
     NSInputStream *inputStream;
     
     bool result = [sender getInputStream:&inputStream outputStream:&bonjourOutputStream];
-
+    
     if (result) {
         bonjourOutputStream.delegate = self;
         
         [bonjourOutputStream open];
         [bonjourOutputStream scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
-
+        
         NSLog(@"netServiceDidResolveAddress over");
     } else {
         NSLog(@"failed to ready stream toward connection");
@@ -213,12 +215,12 @@ NSOutputStream *bonjourOutputStream;
     
     if ((eventCode & NSStreamEventOpenCompleted) != 0) {
         NSLog(@"NSStreamEventOpenCompleted");
-//        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"network connection found"
-//                                                        message:@"hyahha-!"
-//                                                       delegate:nil
-//                                              cancelButtonTitle:@"OK"
-//                                              otherButtonTitles:nil];
-//        [alert show];
+        //        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"network connection found"
+        //                                                        message:@"hyahha-!"
+        //                                                       delegate:nil
+        //                                              cancelButtonTitle:@"OK"
+        //                                              otherButtonTitles:nil];
+        //        [alert show];
     }
     
     if ((eventCode & NSStreamEventHasBytesAvailable) != 0) {
@@ -226,7 +228,7 @@ NSOutputStream *bonjourOutputStream;
     }
     
     if ((eventCode & NSStreamEventHasSpaceAvailable) != 0) {
-//        NSLog(@"NSStreamEventHasSpaceAvailable");
+        //        NSLog(@"NSStreamEventHasSpaceAvailable");
     }
     
     if ((eventCode & NSStreamEventErrorOccurred) != 0) {
@@ -239,61 +241,17 @@ NSOutputStream *bonjourOutputStream;
     
 }
 
-
-
-
-/**
- マウス挙動
- */
-- (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-    for (UITouch *touch in touches) {
-        CGPoint p = [touch locationInView:self.view];
-        
-        NSData *pointData = [NSData dataWithBytes:&p length:sizeof(CGPoint)];
-
-        if (bonjourOutputStream) {
-            [bonjourOutputStream write:[pointData bytes] maxLength:[pointData length]];
-        }
-    }
-}
-
-- (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
-    for (UITouch *touch in touches) {
-        CGPoint p = [touch locationInView:self.view];
-        
-        NSData *pointData = [NSData dataWithBytes:&p length:sizeof(CGPoint)];
-        
-        if (bonjourOutputStream) {
-            [bonjourOutputStream write:[pointData bytes] maxLength:[pointData length]];
-        }
-    }
-}
-
-- (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-    for (UITouch *touch in touches) {
-        CGPoint p = [touch locationInView:self.view];
-        
-        NSData *pointData = [NSData dataWithBytes:&p length:sizeof(CGPoint)];
-        
-        if (bonjourOutputStream) {
-            [bonjourOutputStream write:[pointData bytes] maxLength:[pointData length]];
-        }
-    }
+- (bool) isConnected {
+    [TimeMine setTimeMineLocalizedFormat:@"2014/09/23 18:55:23" withLimitSec:10000 withComment:@"接続チェック、状態持たないといけない。"];
+    return bonjourOutputStream;
 }
 
 
-
-/**
- outputがcloseすると向こう側がめっちゃ不味い。
- どうやって備えよう。なんか切断サイン送って穏便にしとめたいところ。
- */
-
-- (void) doubleTapped:(id)sender {
-//    NSLog(@"doubleTapped!");
-////    [bonjourOutputStream close];// このイベントの時点で相手側が不味いことになる。
-//    [bonjourOutputStream removeFromRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
-//    bonjourService.delegate = nil;
-//    [bonjourService stop];
+- (void) sendData:(NSData *)data {
+    [TimeMine setTimeMineLocalizedFormat:@"2014/09/23 18:41:13" withLimitSec:10000 withComment:@"データを送付する。"];
+    if (![self isConnected]) return;
+    
+    [bonjourOutputStream write:[data bytes] maxLength:[data length]];
 }
 
 
