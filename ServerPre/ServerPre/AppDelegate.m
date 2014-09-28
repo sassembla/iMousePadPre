@@ -42,6 +42,7 @@ NSUserNotificationCenter *notifier;
 int state;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+    NSLog(@"boot!");
     [self publishBonjourNetService];
 }
 
@@ -71,9 +72,6 @@ int state;
         [self notifyToUserWithStatus:STATUS_FAILED_OPEN_PORT withTitle:@"server failed" message:@"failed to locate bonjour network. reboot?"];
         return;
     }
-    
-
-    
     
     /**
      使用しているport番号を取得
@@ -264,7 +262,6 @@ int state;
     bonjourDataReadHandle.readabilityHandler = ^(NSFileHandle *fileHandle) {
         @try {
             NSData *data = [fileHandle availableData];
-            NSLog(@"切断時にやっとデータが来る、という症状があるな。エラー扱いではない。ふむ、、、");
             [self execute:data];
         }
         @catch (NSException *exception) {
