@@ -39,6 +39,8 @@ NSFileHandle *bonjourDataReadHandle;
 
 NSUserNotificationCenter *notifier;
 
+int state;
+
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     [self publishBonjourNetService];
 }
@@ -97,6 +99,37 @@ NSUserNotificationCenter *notifier;
     }
 }
 
+- (void) setState:(int)nextState {
+    state = nextState;
+}
+
+- (void) execute:(NSData *)data{
+    switch (state) {
+        case STATUS_ACCEPTED_IOS:{
+//            [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 20:54:06" withLimitSec:100000 withComment:@"繋がった状態での通信なので、動作を行う。"];
+//            
+//            NSLog(@"len %lu", (unsigned long)[data length]);
+//            [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 20:54:14" withLimitSec:100000 withComment:@"受け取り側、キーの押しっぱなしを発生させる。"];
+//            
+//            [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 20:54:17" withLimitSec:10000 withComment:@"キーの押しっぱなし、あんまりにも長い場合は解除とかオートでやらないとなー。切断時をうまく拾えればOKなんだけど、ってことでstateで切ろう。"];
+//            
+            CGPoint point;
+            [data getBytes:&point length:sizeof(CGPoint)];
+            
+            /**
+             ムーブ
+             */
+            CGEventRef move = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, CGPointMake(point.x, point.y), kCGMouseButtonLeft );
+            CGEventPost(kCGHIDEventTap, move);
+            CFRelease(move);
+            break;
+        }
+            
+        default:
+            break;
+    }
+}
+
 
 /**
  Macの通知センターのデリゲート
@@ -117,7 +150,7 @@ NSUserNotificationCenter *notifier;
         case STATUS_FAILED_OPEN_PORT:
         case STATUS_FAILED_OPEN_BONJOUR:
         case STATUS_FAILED_PUBLISH_BONJOUR:{
-            [TimeMine setTimeMineLocalizedFormat:@"2014/09/23 19:55:38" withLimitSec:10000 withComment:@"ネットワークの再建"];
+            [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 20:53:22" withLimitSec:10000 withComment:@"ネットワークの再建"];
             break;
         }
             
@@ -127,7 +160,7 @@ NSUserNotificationCenter *notifier;
             
         default:
             NSLog(@"status %d", status);
-            [TimeMine setTimeMineLocalizedFormat:@"2014/09/23 20:05:26" withLimitSec:0 withComment:@"未知のコード"];
+            [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 20:53:26" withLimitSec:0 withComment:@"未知のコード"];
             break;
     }
 }
@@ -210,45 +243,41 @@ NSUserNotificationCenter *notifier;
 
 
 - (void) acceptConnection:(NSNotification *)notif {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/23 19:10:43" withLimitSec:100000 withComment:@"通信ができるようになった際のハンドラ。反対側に対してなんか返さんとな。\
+    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 20:53:08" withLimitSec:100000 withComment:@"通信ができるようになった際のハンドラ。反対側に対してなんか返さんとな。\
      この初期通信化時点でパラメータ返すと差分がでてしまう気がするので、iOS側から接続先の情報が取れる手段を見つけた方が良い。"];
     NSLog(@"notif %@", [notif userInfo][@"NSFileHandleNotificationFileHandleItem"]);
     
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/23 20:28:45" withLimitSec:100000 withComment:@"誰と繋がったか表示したいがさて"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 20:53:12" withLimitSec:100000 withComment:@"誰と繋がったか表示したいがさて、名前がわからない。socketから引けって感じなのかな。"];
+    
     NSString *connectedHandle = [notif userInfo][@"NSFileHandleNotificationFileHandleItem"];
     NSLog(@"connectedHandle %@", connectedHandle);
     
-    NSString *message = [[NSString alloc]initWithFormat:@"succeeded to connect to: %@", @"target"];
-    [self notifyToUserWithStatus:STATUS_ACCEPTED_IOS withTitle:@"device connected" message:message];
+    [self setState:STATUS_ACCEPTED_IOS];
+    [self notifyToUserWithStatus:STATUS_ACCEPTED_IOS withTitle:@"device connected" message:@"m"];
     
     bonjourDataReadHandle = [[notif userInfo] objectForKey:NSFileHandleNotificationFileHandleItem];
     
+    
     /**
-     Bonjour越しのデータを受け取るハンドラ
+     Bonjour越しのデータを受け取るハンドラの設置
      */
     bonjourDataReadHandle.readabilityHandler = ^(NSFileHandle *fileHandle) {
-
-        NSData *data = [fileHandle availableData];
-        
-        NSLog(@"len %lu", (unsigned long)[data length]);
-        [TimeMine setTimeMineLocalizedFormat:@"2014/09/23 19:12:35" withLimitSec:100000 withComment:@"受け取り側、キーの押しっぱなしを発生させる。"];
-        
-        [TimeMine setTimeMineLocalizedFormat:@"2014/09/23 19:17:46" withLimitSec:10000 withComment:@"キーの押しっぱなし、あんまりにも長い場合は解除とかオートでやらないとなー。切断時をうまく拾えればOKなんだけど、ってことでstateで切ろう。"];
-        
-        CGPoint point;
-        [data getBytes:&point length:sizeof(CGPoint)];
-        
-        /**
-         ムーブ
-         */
-        CGEventRef move = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, CGPointMake(point.x, point.y), kCGMouseButtonLeft );
-        CGEventPost(kCGHIDEventTap, move);
-        CFRelease(move);
+        @try {
+            NSData *data = [fileHandle availableData];
+            NSLog(@"切断時にやっとデータが来る、という症状があるな。エラー扱いではない。ふむ、、、");
+            [self execute:data];
+        }
+        @catch (NSException *exception) {
+            NSLog(@"exception %@", exception);
+        }
+        @finally {
+            
+        }
         
     };
 }
-//
-//
+
+
 //- (void) receiveData:(NSNotification *)notif {
 //    NSData *data = [bonjourDataReadHandle availableData];
 //    
