@@ -7,9 +7,10 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <CoreGraphics/CoreGraphics.h>
 
 @interface BonjourConnectionController : NSObject <NSStreamDelegate, NSNetServiceDelegate, NSNetServiceBrowserDelegate>
 
-- (void) sendData:(NSData *)data;
+- (void) sendPoint:(CGPoint)point withType:(int)type andKeys:(int)key;
 
 @end

@@ -14,11 +14,11 @@
 
 - (id) init {
     if (self = [super init]) {
-        [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:19:09" withLimitSec:100000 withComment:@"接続の状態をどこかに表示せんとなー感がある。切断とか"];
-        [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:19:12" withLimitSec:100000 withComment:@"サーバ側が落ちて切断されたときの受け取りが無い、気がする。"];
-        [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:19:17" withLimitSec:100000 withComment:@"接続の状態変化を通知する機構が必要。こいつは今後の奴でも必要なので、"];
+        [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 22:01:49" withLimitSec:100000 withComment:@"接続の状態をどこかに表示せんとなー感がある。切断とか"];
+        [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 22:01:54" withLimitSec:100000 withComment:@"サーバ側が落ちて切断されたときの受け取りが無い、気がする。"];
+        [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:19:17" withLimitSec:100000 withComment:@"接続の状態変化を通知する機構が必要。こいつは今後の奴でも必要なので、"];
         
-        [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:19:21" withLimitSec:100000 withComment:@"接続リトライ系の機構が必要。"];
+        [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:19:21" withLimitSec:100000 withComment:@"接続リトライ系の機構が必要。"];
         
         [self searchBonjourNetwork];
     }
@@ -45,7 +45,7 @@ NSNetService *bonjourService;
 NSOutputStream *bonjourOutputStream;
 
 - (void) searchBonjourNetwork {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:19:38" withLimitSec:100000 withComment:@"サーチ開始から時間制限付きで探してるので、そのへんをビジュアル化しないとなー感ある。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:19:38" withLimitSec:100000 withComment:@"サーチ開始から時間制限付きで探してるので、そのへんをビジュアル化しないとなー感ある。"];
     
     bonjourState = BONJOUR_SEARCHING;
     
@@ -66,7 +66,7 @@ NSOutputStream *bonjourOutputStream;
 /* Sent to the NSNetServiceBrowser instance's delegate when the instance's previous running search request has stopped.
  */
 - (void)netServiceBrowserDidStopSearch:(NSNetServiceBrowser *)aNetServiceBrowser {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:19:48" withLimitSec:10000 withComment:@"探すのやめちゃったのでまたなんかしなきゃ"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:19:48" withLimitSec:10000 withComment:@"探すのやめちゃったのでまたなんかしなきゃ"];
     NSLog(@"netServiceBrowserDidStopSearch");
 }
 
@@ -74,26 +74,26 @@ NSOutputStream *bonjourOutputStream;
 /* Sent to the NSNetServiceBrowser instance's delegate when an error in searching for domains or services has occurred. The error dictionary will contain two key/value pairs representing the error domain and code (see the NSNetServicesError enumeration above for error code constants). It is possible for an error to occur after a search has been started successfully.
  */
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didNotSearch:(NSDictionary *)errorDict {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:19:52" withLimitSec:100000 withComment:@"探さなかった。オフライン時とかに発生しそう。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:19:52" withLimitSec:100000 withComment:@"探さなかった。オフライン時とかに発生しそう。"];
 }
 
 
 /* Sent to the NSNetServiceBrowser instance's delegate for each domain discovered. If there are more domains, moreComing will be YES. If for some reason handling discovered domains requires significant processing, accumulating domains until moreComing is NO and then doing the processing in bulk fashion may be desirable.
  */
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didFindDomain:(NSString *)domainString moreComing:(BOOL)moreComing {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:19:56" withLimitSec:10000 withComment:@"ネットワーク見つけた感"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:19:56" withLimitSec:10000 withComment:@"ネットワーク見つけた感"];
 }
 
 /* Sent to the NSNetServiceBrowser instance's delegate when a previously discovered domain is no longer available.
  */
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didRemoveDomain:(NSString *)domainString moreComing:(BOOL)moreComing {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:20:00" withLimitSec:100000 withComment:@"ネットワークから離脱した。故意かどうかはわからない。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:20:00" withLimitSec:100000 withComment:@"ネットワークから離脱した。故意かどうかはわからない。"];
 }
 
 /* Sent to the NSNetServiceBrowser instance's delegate when a previously discovered service is no longer published.
  */
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didRemoveService:(NSNetService *)aNetService moreComing:(BOOL)moreComing {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:20:04" withLimitSec:100000 withComment:@"ネットワークから離脱2"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/11/11 9:20:04" withLimitSec:100000 withComment:@"ネットワークから離脱2、サーバの消滅と、時間で発生する。"];
     bonjourState = BONJOUR_DISCONNECTED;
 }
 
@@ -103,7 +103,7 @@ NSOutputStream *bonjourOutputStream;
     
     bonjourState = BONJOUR_CONNECTING;
     
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:20:09" withLimitSec:100000 withComment:@"クライアントだけをカットすると、\
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:20:09" withLimitSec:100000 withComment:@"クライアントだけをカットすると、\
      n回目以降でサーバ側がなんもできなくなるので、\
      根本からの接続ポイント作り直しをオートマチックに行う仕掛けが必要そう。 nは通信方式の数に依存。勝手にlocalとか着いてるからな。。"];
     
@@ -113,7 +113,7 @@ NSOutputStream *bonjourOutputStream;
         bonjourService.delegate = self;
         [bonjourService resolveWithTimeout:BONJOUR_TIMEOUT];
     } else {
-        [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:20:12" withLimitSec:1000 withComment:@"接続失敗、理由は不明"];
+        [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:20:12" withLimitSec:1000 withComment:@"接続失敗、理由は不明"];
     }
 }
 
@@ -130,13 +130,13 @@ NSOutputStream *bonjourOutputStream;
 /* Sent to the NSNetService instance's delegate when the publication of the instance is complete and successful.
  */
 - (void)netServiceDidPublish:(NSNetService *)sender {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:20:37" withLimitSec:1000 withComment:@"展開開始、なんかまわすのの+1"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:20:37" withLimitSec:1000 withComment:@"展開開始、なんかまわすのの+1"];
 }
 
 /* Sent to the NSNetService instance's delegate when an error in publishing the instance occurs. The error dictionary will contain two key/value pairs representing the error domain and code (see the NSNetServicesError enumeration above for error code constants). It is possible for an error to occur after a successful publication.
  */
 - (void)netService:(NSNetService *)sender didNotPublish:(NSDictionary *)errorDict {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:20:40" withLimitSec:0 withComment:@"ネットワーク展開できなかった"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:20:40" withLimitSec:0 withComment:@"ネットワーク展開できなかった"];
 }
 
 /* Sent to the NSNetService instance's delegate prior to resolving a service on the network. If for some reason the resolution cannot occur, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotResolve: method.
@@ -152,7 +152,7 @@ NSOutputStream *bonjourOutputStream;
  */
 - (void)netServiceDidResolveAddress:(NSNetService *)sender {
     NSLog(@"connected sender is %@", sender);
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:29:16" withLimitSec:100000 withComment:@"接続先の判定を行う感じ。事前になにか要素をセットしておく形にするか。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:29:16" withLimitSec:100000 withComment:@"接続先の判定を行う感じ。事前になにか要素をセットしておく形にするか。"];
     
     NSInputStream *inputStream;
     
@@ -164,7 +164,7 @@ NSOutputStream *bonjourOutputStream;
         [bonjourOutputStream open];
         [bonjourOutputStream scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
     } else {
-        [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:20:52" withLimitSec:0 withComment:@"接続完了からのエラー、発生したら切断状態にしてから接続をやり直す。"];
+        [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:20:52" withLimitSec:0 withComment:@"接続完了からのエラー、発生したら切断状態にしてから接続をやり直す。"];
     }
 }
 
@@ -177,10 +177,7 @@ NSOutputStream *bonjourOutputStream;
 /* Sent to the NSNetService instance's delegate when the instance's previously running publication or resolution request has stopped.
  */
 - (void)netServiceDidStop:(NSNetService *)sender {
-    /**
-     自動的に再接続
-     */
-    [self handleBonjour];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/02 0:00:44" withLimitSec:100000 withComment:@"自動的に再接続、なんだけど実際どの単位での準備が必要かわかってない。"];
 }
 
 /* Sent to the NSNetService instance's delegate when the instance is being monitored and the instance's TXT record has been updated. The new record is contained in the data parameter.
@@ -220,7 +217,7 @@ NSOutputStream *bonjourOutputStream;
 - (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode {
     
     if ((eventCode & NSStreamEventOpenCompleted) != 0) {
-        [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:21:04" withLimitSec:100000 withComment:@"ここまでこないと接続完全完了になってない。接続が完了したので、なんか通知しないとな"];
+        [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:21:04" withLimitSec:100000 withComment:@"ここまでこないと接続完全完了になってない。接続が完了したので、なんか通知しないとな"];
         
         bonjourState = BONJOUR_CONNECTED;
         
@@ -250,13 +247,6 @@ NSOutputStream *bonjourOutputStream;
     
 }
 
-/**
- stateとイベントに応じて、、、っておもったけどなんか勝手に繋がったな、、、探索時間とは一体、、、
- */
-- (void) handleBonjour {
-    
-}
-
 
 - (bool) isBonjourConnected {
     if (bonjourOutputStream) return true;
@@ -264,9 +254,24 @@ NSOutputStream *bonjourOutputStream;
 }
 
 
-- (void) sendData:(NSData *)data {
+
+struct MousePadData {
+    CGPoint mousePoint;
+    int mouseEventType;
+    int inputKeys;
+};
+typedef struct MousePadData MousePadData;
+
+- (void) sendPoint:(CGPoint)point withType:(int)type andKeys:(int)key {
     if (![self isBonjourConnected]) return;
     if (bonjourState != BONJOUR_CONNECTED) return;
+
+    MousePadData mousePadData;
+    mousePadData.mousePoint = point;
+    mousePadData.mouseEventType = type;
+    mousePadData.inputKeys = 0;
+    
+    NSData *data = [NSData dataWithBytes:&mousePadData length:sizeof(MousePadData)];
     [bonjourOutputStream write:[data bytes] maxLength:[data length]];
 }
 

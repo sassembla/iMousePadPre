@@ -29,6 +29,10 @@ BonjourConnectionController *bonConnectCont;
 KeyboardButtonManager *buttonManager;
 
 
+#define MOUSEVENT_BEGAN (0)
+#define MOUSEVENT_MOVED (1)
+#define MOUSEVENT_END   (2)
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     switch (connectionType) {
@@ -37,7 +41,7 @@ KeyboardButtonManager *buttonManager;
             break;
         }
         case CONNECTIONTYPE_BLUETOOTHLE:{
-            [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:25:42" withLimitSec:0 withComment:@"いつかなんとかしたい。"];
+            [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:25:42" withLimitSec:0 withComment:@"いつかなんとかしたい。"];
             break;
         }
             
@@ -61,24 +65,17 @@ KeyboardButtonManager *buttonManager;
  */
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     for (UITouch *touch in touches) {
-        NSLog(@"touch %@", touch);
         CGPoint p = [touch locationInView:self.view];
-        
-        NSData *pointData = [NSData dataWithBytes:&p length:sizeof(CGPoint)];
-
-        [self setMovePoint:pointData];
+        [self setMovePoint:p withMouseEventType:MOUSEVENT_BEGAN];
         break;
     }
 }
 
 - (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     for (UITouch *touch in touches) {
-        NSLog(@"mv %@", touch);
         CGPoint p = [touch locationInView:self.view];
         
-        NSData *pointData = [NSData dataWithBytes:&p length:sizeof(CGPoint)];
-        
-        [self setMovePoint:pointData];
+        [self setMovePoint:p withMouseEventType:MOUSEVENT_MOVED];
         break;
     }
 }
@@ -87,9 +84,7 @@ KeyboardButtonManager *buttonManager;
     for (UITouch *touch in touches) {
         CGPoint p = [touch locationInView:self.view];
         
-        NSData *pointData = [NSData dataWithBytes:&p length:sizeof(CGPoint)];
-        
-        [self setMovePoint:pointData];
+        [self setMovePoint:p withMouseEventType:MOUSEVENT_END];
         break;
     }
 }
@@ -99,12 +94,16 @@ KeyboardButtonManager *buttonManager;
 /**
  キーの押下状態と、カーソルの移動状態を通知する。
  */
-- (void) setMovePoint:(NSData *)pointData {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:21:55" withLimitSec:100000 withComment:@"キーの押下状態は、イベントのまとめを行ってるところで纏めて行う。ボタンマネージャ作るかな。このへんに一個メソッドを指して、データを一括で編集する。キーの状態は押す・離すだけが入ればいい感じかなあ。状態の辞書をもってくるか。"];
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 21:27:09" withLimitSec:100000 withComment:@"一度目、ここで死ぬ。接続に時間がかかるケースがあって、その最中になんかすると死ぬ、みたいな。ほっといて接続がすめば復帰できることから、まだ接続完了してない、というフェーズにおくりこんで、ここにこない、というのがただしそう。"];
+- (void) setMovePoint:(CGPoint)point withMouseEventType:(int)type {
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:21:55" withLimitSec:100000 withComment:@"キーの押下状態は、イベントのまとめを行ってるところで纏めて行う。ボタンマネージャ作るかな。このへんに一個メソッドを指して、データを一括で編集する。キーの状態は押す・離すだけが入ればいい感じかなあ。状態の辞書をもってくるか。"];
+
+    int key = 0;
+    
+    
+
     switch (connectionType) {
         case CONNECTIONTYPE_BONJOUR:{
-            [bonConnectCont sendData:pointData];
+            [bonConnectCont sendPoint:point withType:type andKeys:key];
             break;
         }
         case CONNECTIONTYPE_BLUETOOTHLE:{
@@ -127,7 +126,7 @@ KeyboardButtonManager *buttonManager;
  
  */
 - (IBAction)keyDown:(id)sender {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 9:22:00" withLimitSec:10000 withComment:@"押しっぱなしのキーイベントには分解能が無いので、キーボードっぽくするならそのへんのイベントをスレッドチックに取得する必要がある。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:22:00" withLimitSec:10000 withComment:@"押しっぱなしのキーイベントには分解能が無いので、キーボードっぽくするならそのへんのイベントをスレッドチックに取得する必要がある。"];
     NSLog(@"keyDown");
 }
 

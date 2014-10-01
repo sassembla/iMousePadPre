@@ -41,8 +41,24 @@ NSUserNotificationCenter *notifier;
 
 int state;
 
+
+CGFloat SCREEN_WIDTH;
+CGFloat SCREEN_HEIGHT;
+
+NSMutableDictionary *screenInfo;
+
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     NSLog(@"boot!");
+    
+    
+    NSScreen *screen = [_window screen];    
+    
+    screenInfo = [[NSMutableDictionary alloc]init];
+    SCREEN_WIDTH = screen.frame.size.width;
+    SCREEN_HEIGHT = screen.frame.size.height;
+    
+    
+    
     [self publishBonjourNetService];
 }
 
@@ -101,25 +117,79 @@ int state;
     state = nextState;
 }
 
+
+struct MousePadData {
+    CGPoint mousePoint;
+    int mouseEventType;
+    int inputKeys;
+};
+
+
+
+
+CGPoint currentInputPoint;
+
+CGPoint currentMousePoint;
+CGPoint beforeInputPoint;
+
 - (void) execute:(NSData *)data{
     switch (state) {
         case STATUS_ACCEPTED_IOS:{
-//            [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 20:54:06" withLimitSec:100000 withComment:@"繋がった状態での通信なので、動作を行う。"];
-//            
-//            NSLog(@"len %lu", (unsigned long)[data length]);
-//            [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 20:54:14" withLimitSec:100000 withComment:@"受け取り側、キーの押しっぱなしを発生させる。"];
-//            
-//            [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 20:54:17" withLimitSec:10000 withComment:@"キーの押しっぱなし、あんまりにも長い場合は解除とかオートでやらないとなー。切断時をうまく拾えればOKなんだけど、ってことでstateで切ろう。"];
-//            
-            CGPoint point;
-            [data getBytes:&point length:sizeof(CGPoint)];
-            
-            /**
-             ムーブ
+            /*
+             マウス入力とキー入力の解析と再現を行う。
              */
-            CGEventRef move = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, CGPointMake(point.x, point.y), kCGMouseButtonLeft );
+            struct MousePadData mousePadData;
+            [data getBytes:&mousePadData length:sizeof(mousePadData)];
+
+            /*
+             キーの入出力
+             */
+            
+            
+            /*
+             マウスの位置入力
+             */
+            CGPoint inputPoint = mousePadData.mousePoint;
+            
+            
+            int type = mousePadData.mouseEventType;
+            
+            switch (type) {
+                case 0:
+                    break;
+                case 1:
+                    /*
+                     差分の反映
+                     */
+                    currentMousePoint.x += inputPoint.x - beforeInputPoint.x;
+                    currentMousePoint.y += inputPoint.y - beforeInputPoint.y;
+                    break;
+                    
+                default:
+                    break;
+            }
+        
+            /*
+             Mac側の画面サイズによるリミット
+             */
+            if (currentMousePoint.x < 0) currentMousePoint.x = 0;
+            if (SCREEN_WIDTH < currentMousePoint.x) currentMousePoint.x = SCREEN_WIDTH;
+            
+            if (currentMousePoint.y < 0) currentMousePoint.y = 0;
+            if (SCREEN_HEIGHT < currentMousePoint.y) currentMousePoint.y = SCREEN_HEIGHT;
+            
+            
+            /*
+             マウス動作
+             */
+            CGEventRef move = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, currentMousePoint, kCGMouseButtonLeft );
             CGEventPost(kCGHIDEventTap, move);
             CFRelease(move);
+            
+            
+            // 記録ポイントの更新
+            beforeInputPoint = inputPoint;
+            
             break;
         }
             
@@ -241,17 +311,26 @@ int state;
 
 
 - (void) acceptConnection:(NSNotification *)notif {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 20:53:08" withLimitSec:100000 withComment:@"通信ができるようになった際のハンドラ。反対側に対してなんか返さんとな。\
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 2:31:37" withLimitSec:100000 withComment:@"通信ができるようになった際のハンドラ。反対側に対してなんか返さんとな。\
      この初期通信化時点でパラメータ返すと差分がでてしまう気がするので、iOS側から接続先の情報が取れる手段を見つけた方が良い。"];
-    NSLog(@"notif %@", [notif userInfo][@"NSFileHandleNotificationFileHandleItem"]);
     
-    [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 20:53:12" withLimitSec:100000 withComment:@"誰と繋がったか表示したいがさて、名前がわからない。socketから引けって感じなのかな。"];
+    NSString *connectedHandle = [notif userInfo][NSFileHandleNotificationFileHandleItem];
     
-    NSString *connectedHandle = [notif userInfo][@"NSFileHandleNotificationFileHandleItem"];
-    NSLog(@"connectedHandle %@", connectedHandle);
+    NSString *message = [[NSString alloc]initWithFormat:@"サーバ側、誰と繋がったか表示したいがさて、名前がわからない。socketから引けって感じなのかな。とりあえず後回し。 %@", connectedHandle];
+    
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 2:31:52" withLimitSec:100000 withComment:message];
+    
+    
     
     [self setState:STATUS_ACCEPTED_IOS];
-    [self notifyToUserWithStatus:STATUS_ACCEPTED_IOS withTitle:@"device connected" message:@"m"];
+    
+    /**
+     通知
+     */
+    NSDate * nowDate = [NSDate date];//現在のシステム時間
+    NSString *nowDateStr = [[NSString alloc]initWithFormat:@"time:%@", nowDate];
+    [self notifyToUserWithStatus:STATUS_ACCEPTED_IOS withTitle:@"device connected" message:nowDateStr];
+    
     
     bonjourDataReadHandle = [[notif userInfo] objectForKey:NSFileHandleNotificationFileHandleItem];
     

@@ -26,6 +26,8 @@ NSMutableArray *buttonsStatuss;
         for (NSString *buttonIdentity in [settings keyEnumerator]) {
             NSLog(@"buttonIdentity %@", buttonIdentity);
             NSLog(@"val %@", settings[buttonIdentity]);
+            
+            [TimeMine setTimeMineLocalizedFormat:@"2014/10/01 22:03:05" withLimitSec:100000 withComment:@"UI上にボタンを出す。"];
         }
     }
     return self;
