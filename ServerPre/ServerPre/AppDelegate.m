@@ -31,6 +31,10 @@
 #define STATUS_FAILED_PUBLISH_BONJOUR   (-3)
 #define STATUS_ACCEPTED_IOS             (1)
 
+#define MOUSEVENT_BEGAN (0)
+#define MOUSEVENT_MOVED (1)
+#define MOUSEVENT_END   (2)
+
 
 NSSocketPort *bonjourSocket;
 NSNetService *bonjourService;
@@ -44,19 +48,24 @@ int state;
 
 CGFloat SCREEN_WIDTH;
 CGFloat SCREEN_HEIGHT;
+CGFloat moveRatio;
 
 NSMutableDictionary *screenInfo;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     NSLog(@"boot!");
     
-    
-    NSScreen *screen = [_window screen];    
-    
+    /*
+     画面サイズの取得
+     */
+    NSScreen *screen = [_window screen];
     screenInfo = [[NSMutableDictionary alloc]init];
     SCREEN_WIDTH = screen.frame.size.width;
     SCREEN_HEIGHT = screen.frame.size.height;
     
+    
+    moveRatio = 1.0f;
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 3:18:59" withLimitSec:100000 withComment:@"マウスの動作倍率、それなりに利用価値のある値だ。可変にしたいけどいつかだな。"];
     
     
     [self publishBonjourNetService];
@@ -121,7 +130,10 @@ NSMutableDictionary *screenInfo;
 struct MousePadData {
     CGPoint mousePoint;
     int mouseEventType;
-    int inputKeys;
+    double mouseCodes0_3;
+    
+    double keyCodes0_3;
+    double keyCodes4_7;
 };
 
 
@@ -144,51 +156,17 @@ CGPoint beforeInputPoint;
             /*
              キーの入出力
              */
+            [self keysStatusUpdate:mousePadData.mousePoint withKeyCode0_3:mousePadData.keyCodes0_3 andKeyCode4_7:mousePadData.keyCodes4_7];
             
+            /*
+             マウスのボタン入力
+             */
+            [self mouseButtonStatusUpdate:mousePadData.mousePoint withMouseCode:mousePadData.mouseCodes0_3];
             
             /*
              マウスの位置入力
              */
-            CGPoint inputPoint = mousePadData.mousePoint;
-            
-            
-            int type = mousePadData.mouseEventType;
-            
-            switch (type) {
-                case 0:
-                    break;
-                case 1:
-                    /*
-                     差分の反映
-                     */
-                    currentMousePoint.x += inputPoint.x - beforeInputPoint.x;
-                    currentMousePoint.y += inputPoint.y - beforeInputPoint.y;
-                    break;
-                    
-                default:
-                    break;
-            }
-        
-            /*
-             Mac側の画面サイズによるリミット
-             */
-            if (currentMousePoint.x < 0) currentMousePoint.x = 0;
-            if (SCREEN_WIDTH < currentMousePoint.x) currentMousePoint.x = SCREEN_WIDTH;
-            
-            if (currentMousePoint.y < 0) currentMousePoint.y = 0;
-            if (SCREEN_HEIGHT < currentMousePoint.y) currentMousePoint.y = SCREEN_HEIGHT;
-            
-            
-            /*
-             マウス動作
-             */
-            CGEventRef move = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, currentMousePoint, kCGMouseButtonLeft );
-            CGEventPost(kCGHIDEventTap, move);
-            CFRelease(move);
-            
-            
-            // 記録ポイントの更新
-            beforeInputPoint = inputPoint;
+            [self mouseUpdate:mousePadData.mousePoint withType:mousePadData.mouseEventType];
             
             break;
         }
@@ -198,6 +176,109 @@ CGPoint beforeInputPoint;
     }
 }
 
+/**
+ キーのdownを実行する
+ code1, code2にそれぞれ4つのキーを入れている。
+ */
+- (void) keysStatusUpdate:(CGPoint)inputPoint withKeyCode0_3:(double)code0_3 andKeyCode4_7:(double)code4_7 {
+    
+}
+
+/**
+ マウスのdownを実行する
+ codeの中に4つのキーが入っている。
+ Left,Right,Center,予備
+ */
+- (void) mouseButtonStatusUpdate:(CGPoint)inputPoint withMouseCode:(double)code {
+    /*
+     マウスの 左/右/その他のボタン
+    */
+//    CGEventRef downLeft = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseDown, inputPoint, kCGMouseButtonLeft);
+//    CGEventPost(kCGHIDEventTap, downLeft);
+//    CFRelease(downLeft);
+//    
+//    CGEventRef downRight = CGEventCreateMouseEvent(NULL, kCGEventRightMouseDown, inputPoint, kCGMouseButtonRight);
+//    CGEventPost(kCGHIDEventTap, downRight);
+//    CFRelease(downRight);
+//    
+//    CGEventRef downCenter = CGEventCreateMouseEvent(NULL, kCGEventRightMouseDown, inputPoint, kCGMouseButtonCenter);
+//    CGEventPost(kCGHIDEventTap, downCenter);
+//    CFRelease(downCenter);
+    
+    
+//    CGEventRef keyA = CGEventCreateKeyboardEvent (NULL, (CGKeyCode)52, true);
+//    CGEventPost(kCGEventKeyDown, keyA);
+//    CFRelease(keyA);
+//
+//
+//    CGEventRef keyP = CGEventCreateKeyboardEvent(NULL, kVK_ANSI_P, true);
+//    CGEventPost(kCGSessionEventTap, keyP);
+//    CFRelease(keyP);
+//
+//    CGEventRef keyP = CGEventCreateKeyboardEvent(NULL, kVK_ANSI_P, true);
+//    CGEventPost(kCGSessionEventTap, keyP);
+//    CFRelease(keyP);
+
+
+    /**
+     エンター単体を押すアクション
+     キーを離すのに対応してない。一瞬で離している。
+     別のを探さないとなー。
+     */
+//    CGEventRef tapEnter = CGEventCreateKeyboardEvent (NULL, (CGKeyCode)52, true);
+//    CGEventPost(kCGSessionEventTap, tapEnter);
+//    CFRelease(tapEnter);
+}
+
+/**
+ マウスの移動イベントを実行する
+ */
+- (void) mouseUpdate:(CGPoint)inputPoint withType:(int)mouseEventType {
+    
+    switch (mouseEventType) {
+        case MOUSEVENT_BEGAN:{
+            /*
+             タッチが開始された瞬間に、Mac側のマウスの位置を取得し反映させる
+             */
+            NSPoint mousePoint = [_window mouseLocationOutsideOfEventStream];
+            [TimeMine setTimeMineLocalizedFormat:@"2014/10/02 3:35:25" withLimitSec:1000000 withComment:@"不正確で不愉快"];
+            currentMousePoint.x = mousePoint.x;
+            currentMousePoint.y = mousePoint.y;
+            break;
+        }
+        case MOUSEVENT_MOVED:
+            /*
+             差分の反映
+             */
+            currentMousePoint.x += (inputPoint.x - beforeInputPoint.x) * moveRatio;
+            currentMousePoint.y += (inputPoint.y - beforeInputPoint.y) * moveRatio;
+            break;
+            
+        default:
+            break;
+    }
+    
+    /*
+     Mac側の画面サイズによるリミット
+     */
+    if (currentMousePoint.x < 0) currentMousePoint.x = 0;
+    if (SCREEN_WIDTH < currentMousePoint.x) currentMousePoint.x = SCREEN_WIDTH;
+    
+    if (currentMousePoint.y < 0) currentMousePoint.y = 0;
+    if (SCREEN_HEIGHT < currentMousePoint.y) currentMousePoint.y = SCREEN_HEIGHT;
+    
+    
+    /*
+     マウス動作
+     */
+    CGEventRef move = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, currentMousePoint, kCGMouseButtonLeft );
+    CGEventPost(kCGHIDEventTap, move);
+    CFRelease(move);
+    
+    
+    // 記録ポイントの更新
+    beforeInputPoint = inputPoint;
+}
 
 /**
  Macの通知センターのデリゲート
@@ -335,7 +416,7 @@ CGPoint beforeInputPoint;
     bonjourDataReadHandle = [[notif userInfo] objectForKey:NSFileHandleNotificationFileHandleItem];
     
     
-    /**
+    /*
      Bonjour越しのデータを受け取るハンドラの設置
      */
     bonjourDataReadHandle.readabilityHandler = ^(NSFileHandle *fileHandle) {
@@ -352,77 +433,6 @@ CGPoint beforeInputPoint;
         
     };
 }
-
-
-//- (void) receiveData:(NSNotification *)notif {
-//    NSData *data = [bonjourDataReadHandle availableData];
-//    
-//    /**
-//     マウスの形状ににたデータを受け取りたいところ。
-//     まあ出す側で調整すればいいしこっちでバカ正直にやりたくないんだが。
-//     */
-////    NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-////    NSLog(@"%@", string);
-//    
-//    
-//    if ([data length] == 0) {
-////        閉じよう。
-////        [[NSNotificationCenter defaultCenter] removeObserver:self name:NSFileHandleDataAvailableNotification object:bonjourDataReadHandle];
-////        [bonjourDataReadHandle closeFile];
-//        
-//        
-////        [bonjourDataReadHandle ]
-////        NSLog(@"closed. ready for reconnect");
-////        [bonjourDataReadHandle ]
-////        [bonjourService removeFromRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
-////        [bonjourService stop];
-//        return;
-//    }
-//    
-////    [bonjourDataReadHandle waitForDataInBackgroundAndNotify];
-//    
-//    /**
-//     この位置にマウスを持っていく
-//     */
-////    int posx = 200;
-////    int posy = 200;
-//    
-////    CGEventRef move1 = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, CGPointMake(posx, posy), kCGMouseButtonLeft );
-////    CGEventPost(kCGHIDEventTap, move1);
-////    CFRelease(move1);
-//    
-//    
-//   /**
-//    左/右/ ボタン
-//    */
-////    CGEventRef downLeft = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseDown, CGPointMake(posx, posy), kCGMouseButtonLeft);
-////    CGEventPost(kCGHIDEventTap, downLeft);
-////    CFRelease(downLeft);
-//    
-////    CGEventRef downRight = CGEventCreateMouseEvent(NULL, kCGEventRightMouseDown, CGPointMake(posx, posy), kCGMouseButtonLeft);
-//    
-////    CGEventRef keyA = CGEventCreateKeyboardEvent (NULL, (CGKeyCode)52, true);
-////    CGEventPost(kCGEventKeyDown, keyA);
-////    CFRelease(keyA);
-//    
-//    
-////    CGEventRef keyP = CGEventCreateKeyboardEvent(NULL, kVK_ANSI_P, true);
-////    CGEventPost(kCGSessionEventTap, keyP);
-////    CFRelease(keyP);
-//    
-////    CGEventRef keyP = CGEventCreateKeyboardEvent(NULL, kVK_ANSI_P, true);
-////    CGEventPost(kCGSessionEventTap, keyP);
-////    CFRelease(keyP);
-//    
-//    
-//    /**
-//     エンター単体を押すアクション
-//     キーを離すのに対応してない。
-//     */
-////    CGEventRef tapEnter = CGEventCreateKeyboardEvent (NULL, (CGKeyCode)52, true);
-////    CGEventPost(kCGSessionEventTap, tapEnter);
-////    CFRelease(tapEnter);
-//}
 
 
 
