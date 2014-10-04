@@ -26,10 +26,6 @@
 #define BONJOUR_TYPE    (@"_mousepad._tcp")// _始まりで、protocolを書く。
 #define BONJOUR_NAME    (@"hello!")
 
-#define STATUS_FAILED_OPEN_PORT         (-1)
-#define STATUS_FAILED_OPEN_BONJOUR      (-2)
-#define STATUS_FAILED_PUBLISH_BONJOUR   (-3)
-#define STATUS_ACCEPTED_IOS             (1)
 
 #define MOUSEVENT_BEGAN (0)
 #define MOUSEVENT_MOVED (1)
@@ -65,7 +61,7 @@ NSMutableDictionary *screenInfo;
     
     
     moveRatio = 1.0f;
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 3:18:59" withLimitSec:100000 withComment:@"マウスの動作倍率、それなりに利用価値のある値だ。可変にしたいけどいつかだな。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 3:18:59" withLimitSec:100000 withComment:@"マウスの動作倍率、それなりに利用価値のある値だ。可変にしたいけどいつかだな。ただ、サーバ側で持つのは駄目だな。"];
     
     
     [self publishBonjourNetService];
@@ -94,7 +90,7 @@ NSMutableDictionary *screenInfo;
     bonjourSocket.delegate = self;
     
     if (!bonjourSocket) {
-        [self notifyToUserWithStatus:STATUS_FAILED_OPEN_PORT withTitle:@"server failed" message:@"failed to locate bonjour network. reboot?"];
+        [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_OPEN_PORT withTitle:@"server failed" message:@"failed to locate bonjour network. reboot?"];
         return;
     }
     
@@ -118,23 +114,13 @@ NSMutableDictionary *screenInfo;
         [bonjourService scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
         [bonjourService publish];
     } else {
-        [self notifyToUserWithStatus:STATUS_FAILED_OPEN_BONJOUR withTitle:@"server failed" message:@"failed to locate bonjour network. reboot?"];
+        [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_OPEN_BONJOUR withTitle:@"server failed" message:@"failed to locate bonjour network. reboot?"];
     }
 }
 
 - (void) setState:(int)nextState {
     state = nextState;
 }
-
-
-struct MousePadData {
-    CGPoint mousePoint;
-    int mouseEventType;
-    double mouseCodes0_3;
-    
-    double keyCodes0_3;
-    double keyCodes4_7;
-};
 
 
 
@@ -144,9 +130,9 @@ CGPoint currentInputPoint;
 CGPoint currentMousePoint;
 CGPoint beforeInputPoint;
 
-- (void) execute:(NSData *)data{
+- (void) execute:(NSData *)data {
     switch (state) {
-        case STATUS_ACCEPTED_IOS:{
+        case BONJOUR_RECEIVER_ACCEPTED_IOS:{
             /*
              マウス入力とキー入力の解析と再現を行う。
              */
@@ -156,12 +142,21 @@ CGPoint beforeInputPoint;
             /*
              キーの入出力
              */
-            [self keysStatusUpdate:mousePadData.mousePoint withKeyCode0_3:mousePadData.keyCodes0_3 andKeyCode4_7:mousePadData.keyCodes4_7];
+            [self keysStatusUpdate:mousePadData.mousePoint
+                              key0:mousePadData.key0
+                              key1:mousePadData.key1
+                              key0:mousePadData.key2
+                              key1:mousePadData.key3
+                              key0:mousePadData.key4
+                              key1:mousePadData.key5
+                              key0:mousePadData.key6
+                              key1:mousePadData.key7
+             ];
             
             /*
              マウスのボタン入力
              */
-            [self mouseButtonStatusUpdate:mousePadData.mousePoint withMouseCode:mousePadData.mouseCodes0_3];
+            [self mouseButtonStatusUpdate:mousePadData.mousePoint left:mousePadData.left right:mousePadData.right andCenter:mousePadData.center];
             
             /*
              マウスの位置入力
@@ -180,30 +175,42 @@ CGPoint beforeInputPoint;
  キーのdownを実行する
  code1, code2にそれぞれ4つのキーを入れている。
  */
-- (void) keysStatusUpdate:(CGPoint)inputPoint withKeyCode0_3:(double)code0_3 andKeyCode4_7:(double)code4_7 {
+- (void) keysStatusUpdate:(CGPoint)inputPoint
+                     key0:(Byte)key0
+                     key1:(Byte)key1
+                     key0:(Byte)key2
+                     key1:(Byte)key3
+                     key0:(Byte)key4
+                     key1:(Byte)key5
+                     key0:(Byte)key6
+                     key1:(Byte)key7 {
     
 }
 
 /**
- マウスのdownを実行する
- codeの中に4つのキーが入っている。
- Left,Right,Center,予備
- */
-- (void) mouseButtonStatusUpdate:(CGPoint)inputPoint withMouseCode:(double)code {
+ マウスのdownを実行する */
+- (void) mouseButtonStatusUpdate:(CGPoint)inputPoint left:(bool)left right:(bool)right andCenter:(bool)center {
     /*
      マウスの 左/右/その他のボタン
     */
-//    CGEventRef downLeft = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseDown, inputPoint, kCGMouseButtonLeft);
-//    CGEventPost(kCGHIDEventTap, downLeft);
-//    CFRelease(downLeft);
-//    
-//    CGEventRef downRight = CGEventCreateMouseEvent(NULL, kCGEventRightMouseDown, inputPoint, kCGMouseButtonRight);
-//    CGEventPost(kCGHIDEventTap, downRight);
-//    CFRelease(downRight);
-//    
-//    CGEventRef downCenter = CGEventCreateMouseEvent(NULL, kCGEventRightMouseDown, inputPoint, kCGMouseButtonCenter);
-//    CGEventPost(kCGHIDEventTap, downCenter);
-//    CFRelease(downCenter);
+    
+    if (left) {
+        CGEventRef downLeft = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseDown, inputPoint, kCGMouseButtonLeft);
+        CGEventPost(kCGHIDEventTap, downLeft);
+        CFRelease(downLeft);
+    }
+    
+    if (right) {
+        CGEventRef downRight = CGEventCreateMouseEvent(NULL, kCGEventRightMouseDown, inputPoint, kCGMouseButtonRight);
+        CGEventPost(kCGHIDEventTap, downRight);
+        CFRelease(downRight);
+    }
+
+    if (center) {
+        CGEventRef downCenter = CGEventCreateMouseEvent(NULL, kCGEventRightMouseDown, inputPoint, kCGMouseButtonCenter);
+        CGEventPost(kCGHIDEventTap, downCenter);
+        CFRelease(downCenter);
+    }
     
     
 //    CGEventRef keyA = CGEventCreateKeyboardEvent (NULL, (CGKeyCode)52, true);
@@ -230,6 +237,24 @@ CGPoint beforeInputPoint;
 //    CFRelease(tapEnter);
 }
 
+
+
+/**
+ クリックの状態取得
+ */
+- (bool) isRightClicking {
+    return false;
+}
+
+- (bool) isLeftClicking {
+    return false;
+}
+
+- (bool) isCenterClicking {
+    return false;
+}
+
+
 /**
  マウスの移動イベントを実行する
  */
@@ -240,8 +265,8 @@ CGPoint beforeInputPoint;
             /*
              タッチが開始された瞬間に、Mac側のマウスの位置を取得し反映させる
              */
-            NSPoint mousePoint = [_window mouseLocationOutsideOfEventStream];
-            [TimeMine setTimeMineLocalizedFormat:@"2014/10/02 3:35:25" withLimitSec:1000000 withComment:@"不正確で不愉快"];
+            NSPoint mousePoint = [NSEvent mouseLocation];
+            
             currentMousePoint.x = mousePoint.x;
             currentMousePoint.y = mousePoint.y;
             break;
@@ -296,14 +321,14 @@ CGPoint beforeInputPoint;
     int status = [notification.actionButtonTitle intValue];
     switch (status) {
         
-        case STATUS_FAILED_OPEN_PORT:
-        case STATUS_FAILED_OPEN_BONJOUR:
-        case STATUS_FAILED_PUBLISH_BONJOUR:{
+        case BONJOUR_RECEIVER_FAILED_OPEN_PORT:
+        case BONJOUR_RECEIVER_FAILED_OPEN_BONJOUR:
+        case BONJOUR_RECEIVER_FAILED_PUBLISH_BONJOUR:{
             [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 20:53:22" withLimitSec:10000 withComment:@"ネットワークの再建"];
             break;
         }
             
-        case STATUS_ACCEPTED_IOS:
+        case BONJOUR_RECEIVER_ACCEPTED_IOS:
 //            ignore
             break;
             
@@ -340,7 +365,7 @@ CGPoint beforeInputPoint;
         
         [bonjourSocketHandle acceptConnectionInBackgroundAndNotify];
     } else {
-        [self notifyToUserWithStatus:STATUS_FAILED_PUBLISH_BONJOUR withTitle:@"server failed" message:@"failed to publish bonjour network. reboot?"];
+        [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_PUBLISH_BONJOUR withTitle:@"server failed" message:@"failed to publish bonjour network. reboot?"];
     }
 }
 
@@ -403,14 +428,14 @@ CGPoint beforeInputPoint;
     
     
     
-    [self setState:STATUS_ACCEPTED_IOS];
+    [self setState:BONJOUR_RECEIVER_ACCEPTED_IOS];
     
     /**
      通知
      */
     NSDate * nowDate = [NSDate date];//現在のシステム時間
     NSString *nowDateStr = [[NSString alloc]initWithFormat:@"time:%@", nowDate];
-    [self notifyToUserWithStatus:STATUS_ACCEPTED_IOS withTitle:@"device connected" message:nowDateStr];
+    [self notifyToUserWithStatus:BONJOUR_RECEIVER_ACCEPTED_IOS withTitle:@"device connected" message:nowDateStr];
     
     
     bonjourDataReadHandle = [[notif userInfo] objectForKey:NSFileHandleNotificationFileHandleItem];
