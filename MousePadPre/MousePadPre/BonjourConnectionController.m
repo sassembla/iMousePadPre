@@ -177,7 +177,7 @@ NSOutputStream *bonjourOutputStream;
 /* Sent to the NSNetService instance's delegate when the instance's previously running publication or resolution request has stopped.
  */
 - (void)netServiceDidStop:(NSNetService *)sender {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/02 0:00:44" withLimitSec:100000 withComment:@"NetServiceの切断が行われた。自動的に再接続、なんだけど実際どの単位での準備が必要かわかってない。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/12 0:00:44" withLimitSec:100000 withComment:@"NetServiceの探索終了が行われた。接続されてない場合自動的に再接続、なんだけど実際どの単位での準備が必要かわかってない。"];
 }
 
 /* Sent to the NSNetService instance's delegate when the instance is being monitored and the instance's TXT record has been updated. The new record is contained in the data parameter.
@@ -258,11 +258,20 @@ NSOutputStream *bonjourOutputStream;
 struct MousePadData {
     CGPoint mousePoint;
     int mouseEventType;
-    double mouseCodes0_3;
+    bool left;
+    bool right;
+    bool center;
     
-    double keyCodes0_3;
-    double keyCodes4_7;
+    Byte key0;
+    Byte key1;
+    Byte key2;
+    Byte key3;
+    Byte key4;
+    Byte key5;
+    Byte key6;
+    Byte key7;
 };
+
 typedef struct MousePadData MousePadData;
 
 - (void) sendPoint:(CGPoint)point withType:(int)type andKeys:(int)key {
@@ -272,9 +281,9 @@ typedef struct MousePadData MousePadData;
     MousePadData mousePadData;
     mousePadData.mousePoint = point;
     mousePadData.mouseEventType = type;
-    mousePadData.mouseCodes0_3 = 0;
-    mousePadData.keyCodes0_3 = 0;
-    mousePadData.keyCodes4_7 = 0;
+//    mousePadData.mouseCodes0_3 = 0;
+//    mousePadData.keyCodes0_3 = 0;
+//    mousePadData.keyCodes4_7 = 0;
     
     NSData *data = [NSData dataWithBytes:&mousePadData length:sizeof(MousePadData)];
     [bonjourOutputStream write:[data bytes] maxLength:[data length]];

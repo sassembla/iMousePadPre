@@ -27,7 +27,7 @@ NSMutableArray *buttonsStatuss;
             NSLog(@"buttonIdentity %@", buttonIdentity);
             NSLog(@"val %@", settings[buttonIdentity]);
             
-            [TimeMine setTimeMineLocalizedFormat:@"2014/10/01 22:03:05" withLimitSec:100000 withComment:@"UI上にボタンを出す。"];
+            [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 22:03:05" withLimitSec:100000 withComment:@"UI上にボタンを出す。"];
         }
     }
     return self;

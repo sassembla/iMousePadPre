@@ -17,7 +17,7 @@
 
 
 
-/**
+/*
  不特定のportを使ってBonjour経由でiOS側と接続する。
  */
 @implementation AppDelegate
@@ -48,6 +48,9 @@ CGFloat moveRatio;
 
 NSMutableDictionary *screenInfo;
 
+
+
+
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     NSLog(@"boot!");
     
@@ -61,8 +64,10 @@ NSMutableDictionary *screenInfo;
     
     
     moveRatio = 1.0f;
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 3:18:59" withLimitSec:100000 withComment:@"マウスの動作倍率、それなりに利用価値のある値だ。可変にしたいけどいつかだな。ただ、サーバ側で持つのは駄目だな。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/04 21:41:01" withLimitSec:100000 withComment:@"マウスの動作倍率、それなりに利用価値のある値だ。可変にしたいけどいつかだな。ただ、サーバ側で持つのは駄目だな。"];
     
+    
+    pointerStatus = @{};
     
     [self publishBonjourNetService];
 }
@@ -83,7 +88,7 @@ NSMutableDictionary *screenInfo;
     notifier.delegate = self;
     
     
-    /**
+    /*
      自動的にportを割り当てる
      */
     bonjourSocket = [[NSSocketPort alloc] init];
@@ -94,7 +99,7 @@ NSMutableDictionary *screenInfo;
         return;
     }
     
-    /**
+    /*
      使用しているport番号を取得
      */
     struct sockaddr_in addr = *((struct sockaddr_in *)[[bonjourSocket address] bytes]);
@@ -105,7 +110,7 @@ NSMutableDictionary *screenInfo;
     int portNumber = ntohs(addr.sin_port);
     
     
-    /**
+    /*
      bonjourで使用するサービスに関連づける
      */
     bonjourService = [[NSNetService alloc]initWithDomain:BONJOUR_DOMAIN type:BONJOUR_TYPE name:BONJOUR_NAME port:portNumber];
@@ -171,7 +176,7 @@ CGPoint beforeInputPoint;
     }
 }
 
-/**
+/*
  キーのdownを実行する
  code1, code2にそれぞれ4つのキーを入れている。
  */
@@ -187,7 +192,7 @@ CGPoint beforeInputPoint;
     
 }
 
-/**
+/*
  マウスのdownを実行する */
 - (void) mouseButtonStatusUpdate:(CGPoint)inputPoint left:(bool)left right:(bool)right andCenter:(bool)center {
     /*
@@ -227,7 +232,7 @@ CGPoint beforeInputPoint;
 //    CFRelease(keyP);
 
 
-    /**
+    /*
      エンター単体を押すアクション
      キーを離すのに対応してない。一瞬で離している。
      別のを探さないとなー。
@@ -239,7 +244,7 @@ CGPoint beforeInputPoint;
 
 
 
-/**
+/*
  クリックの状態取得
  */
 - (bool) isRightClicking {
@@ -255,20 +260,13 @@ CGPoint beforeInputPoint;
 }
 
 
-/**
+/*
  マウスの移動イベントを実行する
  */
 - (void) mouseUpdate:(CGPoint)inputPoint withType:(int)mouseEventType {
     
     switch (mouseEventType) {
         case MOUSEVENT_BEGAN:{
-            /*
-             タッチが開始された瞬間に、Mac側のマウスの位置を取得し反映させる
-             */
-            NSPoint mousePoint = [NSEvent mouseLocation];
-            
-            currentMousePoint.x = mousePoint.x;
-            currentMousePoint.y = mousePoint.y;
             break;
         }
         case MOUSEVENT_MOVED:
@@ -305,7 +303,7 @@ CGPoint beforeInputPoint;
     beforeInputPoint = inputPoint;
 }
 
-/**
+/*
  Macの通知センターのデリゲート
  */
 // Sent to the delegate when a notification delivery date has arrived. At this time, the notification has either been presented to the user or the notification center has decided not to present it because your application was already frontmost.
@@ -315,9 +313,6 @@ CGPoint beforeInputPoint;
 // Sent to the delegate when a user clicks on a notification in the notification center. This would be a good time to take action in response to user interacting with a specific notification.
 // Important: If want to take an action when your application is launched as a result of a user clicking on a notification, be sure to implement the applicationDidFinishLaunching: method on your NSApplicationDelegate. The notification parameter to that method has a userInfo dictionary, and that dictionary has the NSApplicationLaunchUserNotificationKey key. The value of that key is the NSUserNotification that caused the application to launch. The NSUserNotification is delivered to the NSApplication delegate because that message will be sent before your application has a chance to set a delegate for the NSUserNotificationCenter.
 - (void)userNotificationCenter:(NSUserNotificationCenter *)center didActivateNotification:(NSUserNotification *)notification {
-    NSLog(@"notif %@", notification);
-
-    
     int status = [notification.actionButtonTitle intValue];
     switch (status) {
         
@@ -344,7 +339,7 @@ CGPoint beforeInputPoint;
 
 
 
-/**
+/*
  NSNetServiceDelegateのデリゲート
  */
 /* Sent to the NSNetService instance's delegate prior to advertising the service on the network. If for some reason the service cannot be published, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotPublish: method.
@@ -358,7 +353,7 @@ CGPoint beforeInputPoint;
     
     bonjourSocketHandle = [[NSFileHandle alloc] initWithFileDescriptor:[bonjourSocket socket] closeOnDealloc:YES];
     if (bonjourSocketHandle) {
-        /**
+        /*
          通知をセット
          */
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(acceptConnection:) name:NSFileHandleConnectionAcceptedNotification object:bonjourSocketHandle];
@@ -393,7 +388,9 @@ CGPoint beforeInputPoint;
 
 /* Sent to the NSNetService instance's delegate when the instance's previously running publication or resolution request has stopped.
  */
-//- (void)netServiceDidStop:(NSNetService *)sender {}
+- (void)netServiceDidStop:(NSNetService *)sender {
+    NSLog(@"サーバ側のタイムアウト、コレが原因で切断されてるのかも。 %@", sender);
+}
 
 
 /* Sent to the NSNetService instance's delegate when the instance is being monitored and the instance's TXT record has been updated. The new record is contained in the data parameter.
@@ -421,16 +418,11 @@ CGPoint beforeInputPoint;
      この初期通信化時点でパラメータ返すと差分がでてしまう気がするので、iOS側から接続先の情報が取れる手段を見つけた方が良い。"];
     
     NSString *connectedHandle = [notif userInfo][NSFileHandleNotificationFileHandleItem];
-    
-    NSString *message = [[NSString alloc]initWithFormat:@"サーバ側、誰と繋がったか表示したいがさて、名前がわからない。socketから引けって感じなのかな。とりあえず後回し。 %@", connectedHandle];
-    
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 2:31:52" withLimitSec:100000 withComment:message];
-    
-    
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 2:31:52" withLimitSec:100000 withComment:@"サーバ側、誰と繋がったか表示したいがさて、名前がわからない。socketから引けって感じなのかな。とりあえず後回し。"];
     
     [self setState:BONJOUR_RECEIVER_ACCEPTED_IOS];
     
-    /**
+    /*
      通知
      */
     NSDate * nowDate = [NSDate date];//現在のシステム時間
@@ -463,7 +455,7 @@ CGPoint beforeInputPoint;
 
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
-    /**
+    /*
      すべての通知を外す(接続が確立してない場合でも消す)
      */
     [[NSNotificationCenter defaultCenter] removeObserver:self];
