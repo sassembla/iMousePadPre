@@ -243,23 +243,6 @@ CGPoint beforeInputPoint;
 }
 
 
-
-/*
- クリックの状態取得
- */
-- (bool) isRightClicking {
-    return false;
-}
-
-- (bool) isLeftClicking {
-    return false;
-}
-
-- (bool) isCenterClicking {
-    return false;
-}
-
-
 /*
  マウスの移動イベントを実行する
  */

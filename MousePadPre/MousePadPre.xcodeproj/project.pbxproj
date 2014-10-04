@@ -18,6 +18,8 @@
 		335C358819D16C86004CD23C /* KeyboardButtonManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 335C358719D16C86004CD23C /* KeyboardButtonManager.m */; };
 		335C358B19D16EC1004CD23C /* KeyboardButtonObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 335C358A19D16EC1004CD23C /* KeyboardButtonObject.m */; };
 		335C358E19D17664004CD23C /* BonjourConnectionController.m in Sources */ = {isa = PBXBuildFile; fileRef = 335C358D19D17664004CD23C /* BonjourConnectionController.m */; };
+		33657F1C19E027700074D782 /* KeysData.m in Sources */ = {isa = PBXBuildFile; fileRef = 33657F1B19E027700074D782 /* KeysData.m */; };
+		33657F1D19E027700074D782 /* KeysData.m in Sources */ = {isa = PBXBuildFile; fileRef = 33657F1B19E027700074D782 /* KeysData.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +54,8 @@
 		335C358A19D16EC1004CD23C /* KeyboardButtonObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KeyboardButtonObject.m; sourceTree = "<group>"; };
 		335C358C19D17664004CD23C /* BonjourConnectionController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BonjourConnectionController.h; sourceTree = "<group>"; };
 		335C358D19D17664004CD23C /* BonjourConnectionController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BonjourConnectionController.m; sourceTree = "<group>"; };
+		33657F1A19E027700074D782 /* KeysData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeysData.h; sourceTree = "<group>"; };
+		33657F1B19E027700074D782 /* KeysData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KeysData.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,6 +111,8 @@
 				335C358919D16EC1004CD23C /* KeyboardButtonObject.h */,
 				335C358A19D16EC1004CD23C /* KeyboardButtonObject.m */,
 				335C359019D17673004CD23C /* BonjourConnection */,
+				33657F1A19E027700074D782 /* KeysData.h */,
+				33657F1B19E027700074D782 /* KeysData.m */,
 			);
 			path = MousePadPre;
 			sourceTree = "<group>";
@@ -259,6 +265,7 @@
 				330A2A1B19CABBE300441A2A /* ViewController.m in Sources */,
 				335C358E19D17664004CD23C /* BonjourConnectionController.m in Sources */,
 				335C358819D16C86004CD23C /* KeyboardButtonManager.m in Sources */,
+				33657F1C19E027700074D782 /* KeysData.m in Sources */,
 				335C358419D163D5004CD23C /* TimeMine.m in Sources */,
 				330A2A1819CABBE300441A2A /* AppDelegate.m in Sources */,
 				330A2A1519CABBE300441A2A /* main.m in Sources */,
@@ -271,6 +278,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				330A2A2F19CABBE300441A2A /* MousePadPreTests.m in Sources */,
+				33657F1D19E027700074D782 /* KeysData.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

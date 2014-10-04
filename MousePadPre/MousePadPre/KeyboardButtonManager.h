@@ -7,7 +7,11 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "KeysData.h"
 
 @interface KeyboardButtonManager : NSObject
+
 - (id) initWithBaseView:(UIView *)baseView andSetting:(NSDictionary *)settings;
+- (KeysData *)keysData;
+
 @end

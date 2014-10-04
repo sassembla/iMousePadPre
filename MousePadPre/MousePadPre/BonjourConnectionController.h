@@ -9,8 +9,10 @@
 #import <Foundation/Foundation.h>
 #import <CoreGraphics/CoreGraphics.h>
 
+#import "KeysData.h"
+
 @interface BonjourConnectionController : NSObject <NSStreamDelegate, NSNetServiceDelegate, NSNetServiceBrowserDelegate>
 
-- (void) sendPoint:(CGPoint)point withType:(int)type andKeys:(int)key;
+- (void) sendPoint:(CGPoint)point withType:(int)type andKeysData:(KeysData *)keyData;
 
 @end

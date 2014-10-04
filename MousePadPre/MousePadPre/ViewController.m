@@ -95,15 +95,11 @@ KeyboardButtonManager *buttonManager;
  キーの押下状態と、カーソルの移動状態を通知する。
  */
 - (void) setMovePoint:(CGPoint)point withMouseEventType:(int)type {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:21:55" withLimitSec:100000 withComment:@"キーの押下状態は、イベントのまとめを行ってるところで纏めて行う。ボタンマネージャ作るかな。このへんに一個メソッドを指して、データを一括で編集する。キーの状態は押す・離すだけが入ればいい感じかなあ。状態の辞書をもってくるか。"];
-
-    int key = 0;
-    
-    
+    KeysData *keysData = nil;
 
     switch (connectionType) {
         case CONNECTIONTYPE_BONJOUR:{
-            [bonConnectCont sendPoint:point withType:type andKeys:key];
+            [bonConnectCont sendPoint:point withType:type andKeysData:keysData];
             break;
         }
         case CONNECTIONTYPE_BLUETOOTHLE:{
@@ -120,19 +116,16 @@ KeyboardButtonManager *buttonManager;
 }
 
 
-
-
 /**
- 
+ ボタンのマネージャからキー情報を取得する
  */
-- (IBAction)keyDown:(id)sender {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:22:00" withLimitSec:10000 withComment:@"押しっぱなしのキーイベントには分解能が無いので、キーボードっぽくするならそのへんのイベントをスレッドチックに取得する必要がある。"];
-    NSLog(@"keyDown");
+- (KeysData *) readKeysData {
+    return [buttonManager keysData];
 }
 
-- (IBAction)keyUp:(id)sender {
-    NSLog(@"keyUp");
-}
 
+- (void) intervalKeyUpdate {
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/04 22:42:29" withLimitSec:100000 withComment:@"setMovePointを定期的に実行して、キーの状態変化を通知する、、、とかかな、、まあ変化するまでは変化してない、って感じで良いんだと思うから出番が無いかな、、、"];
+}
 
 @end
