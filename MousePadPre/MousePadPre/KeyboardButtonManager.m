@@ -10,24 +10,68 @@
 #import "KeyboardButtonManager.h"
 #import "TimeMine.h"
 
+#import "MouseButtonViewController.h"
+#import "KeyButtonViewController.h"
+
+
+
+
 
 @implementation KeyboardButtonManager
 
-UIView *view;
 NSMutableArray *buttons;
 NSMutableArray *buttonsStatuss;
 
-- (id) initWithBaseView:(UIView *)baseView andSetting:(NSDictionary *)settings {
+- (id) initWithBaseView:(UIView *)baseView andSetting:(NSArray *)settings {
     if (self = [super init]) {
-        view = baseView;
         buttons = [[NSMutableArray alloc]init];
         buttonsStatuss = [[NSMutableArray alloc]init];
         
-        for (NSString *buttonIdentity in [settings keyEnumerator]) {
-            NSLog(@"buttonIdentity %@", buttonIdentity);
-            NSLog(@"val %@", settings[buttonIdentity]);
+        int buttonIndex = 0;
+        for (NSDictionary *buttonDict in settings) {
+
+            NSLog(@"buttonIdentity %@", buttonDict[@"identity"]);
+            int type = [buttonDict[@"type"] intValue];
             
-            [TimeMine setTimeMineLocalizedFormat:@"2014/10/04 22:50:25" withLimitSec:0 withComment:@"UI上にボタンを出す。"];
+            float x = [buttonDict[@"x"] floatValue];
+            float y = [buttonDict[@"y"] floatValue];
+            
+            CGRect buttonFrame = CGRectMake(x, y, 100, 100);
+            
+            NSString *title = buttonDict[@"title"];
+            
+            switch (type) {
+                case INPUT_TYPE_MOUSEBUTTON:{
+                    int mouseButtonIdentity = 0;
+                    MouseButtonViewController *mouseButtonViewCont = [[MouseButtonViewController alloc] initWithKeyType:mouseButtonIdentity withIndex:buttonIndex andTitle:title];
+                    
+                    UIView *buttonView = [mouseButtonViewCont view];
+                    [buttonView setFrame:buttonFrame];
+                    [baseView addSubview:[mouseButtonViewCont view]];
+                    
+                    [buttons addObject:mouseButtonViewCont];
+                    break;
+                }
+                case INPUT_TYPE_KEY:{
+                    int keyButtonIdentity = 0;
+                    KeyButtonViewController *keyButtonViewCont = [[KeyButtonViewController alloc] initWithKeyType:keyButtonIdentity withIndex:buttonIndex andTitle:title];
+                    
+                    UIView *buttonView = [keyButtonViewCont view];
+                    [buttonView setFrame:buttonFrame];
+                    [baseView addSubview:[keyButtonViewCont view]];
+                                        [buttons addObject:buttonView];
+                    
+                    [buttons addObject:keyButtonViewCont];
+                    break;
+                }
+                    
+                default:
+                    break;
+            }
+            
+
+            
+            buttonIndex ++;
         }
     }
     return self;

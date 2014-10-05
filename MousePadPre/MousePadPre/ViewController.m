@@ -33,6 +33,7 @@ KeyboardButtonManager *buttonManager;
 #define MOUSEVENT_MOVED (1)
 #define MOUSEVENT_END   (2)
 
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     switch (connectionType) {
@@ -53,9 +54,26 @@ KeyboardButtonManager *buttonManager;
      設定ファイルを読み込む
      存在しなければデフォルトを読む
      */
-    NSDictionary *defButtonDict = @{@"type":@"K", @"x":@100, @"y":@100};
-    NSDictionary *settingDict = @{@"default":defButtonDict};
-    buttonManager = [[KeyboardButtonManager alloc]initWithBaseView:self.view andSetting:settingDict];
+    NSDictionary *defMouseButtonDict = @{
+                                         @"identity":@"Right",
+                                         @"type":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
+                                         @"x":@200.0f,
+                                         @"y":@100.0f,
+                                         @"title":@"Right Click"
+                                         };
+    
+    NSDictionary *defKeyButtonDict = @{
+                                       @"identity":@"K",
+                                       @"type":[NSNumber numberWithInt:INPUT_TYPE_KEY],
+                                       @"x":@100.0f,
+                                       @"y":@100.0f,
+                                       @"title":@"K"
+                                       };
+    
+    NSArray *settings = @[defMouseButtonDict, defKeyButtonDict];
+    
+    
+    buttonManager = [[KeyboardButtonManager alloc]initWithBaseView:self.view andSetting:settings];
 }
 
 
