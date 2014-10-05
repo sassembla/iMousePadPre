@@ -20,11 +20,21 @@
                     <state key="normal" title="Key" backgroundImage="KeyBase">
                         <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                     </state>
+                    <state key="selected" backgroundImage="KeyBaseOn"/>
+                    <state key="highlighted" backgroundImage="KeyBaseOn">
+                        <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                    </state>
+                    <connections>
+                        <action selector="touchDown:" destination="-1" eventType="touchDown" id="q6I-jt-WqV"/>
+                        <action selector="touchUp:" destination="-1" eventType="touchUpInside" id="5U9-x9-rKR"/>
+                        <action selector="touchUp:" destination="-1" eventType="touchUpOutside" id="X4u-VZ-BqT"/>
+                    </connections>
                 </button>
             </subviews>
         </view>
     </objects>
     <resources>
         <image name="KeyBase" width="104" height="104"/>
+        <image name="KeyBaseOn" width="104" height="104"/>
     </resources>
 </document>

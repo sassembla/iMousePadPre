@@ -54,13 +54,31 @@ KeyboardButtonManager *buttonManager;
      設定ファイルを読み込む
      存在しなければデフォルトを読む
      */
-    NSDictionary *defMouseButtonDict = @{
+    NSDictionary *defRightMouseButtonDict = @{
                                          @"identity":@"Right",
                                          @"type":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
                                          @"x":@200.0f,
                                          @"y":@100.0f,
-                                         @"title":@"Right Click"
+                                         @"title":@"R"
                                          };
+    
+    NSDictionary *defLeftMouseButtonDict = @{
+                                             @"identity":@"Left",
+                                             @"type":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
+                                             @"x":@300.0f,
+                                             @"y":@100.0f,
+                                             @"title":@"L"
+                                             };
+
+    
+    NSDictionary *defCenterMouseButtonDict = @{
+                                               @"identity":@"Center",
+                                               @"type":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
+                                               @"x":@400.0f,
+                                               @"y":@100.0f,
+                                               @"title":@"C"
+                                               };
+
     
     NSDictionary *defKeyButtonDict = @{
                                        @"identity":@"K",
@@ -70,11 +88,17 @@ KeyboardButtonManager *buttonManager;
                                        @"title":@"K"
                                        };
     
-    NSArray *settings = @[defMouseButtonDict, defKeyButtonDict];
-    
+    NSArray *settings = @[defRightMouseButtonDict, defLeftMouseButtonDict, defCenterMouseButtonDict, defKeyButtonDict];
     
     buttonManager = [[KeyboardButtonManager alloc]initWithBaseView:self.view andSetting:settings];
 }
+
+
+
+- (void) receiver:(NSNotification *)notif {
+    NSLog(@"notif %@", notif);
+}
+
 
 
 /**

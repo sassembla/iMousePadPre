@@ -14,16 +14,13 @@
 #import "KeyButtonViewController.h"
 
 
-
-
-
 @implementation KeyboardButtonManager
 
 NSMutableArray *buttons;
 NSMutableArray *buttonsStatuss;
 
 - (id) initWithBaseView:(UIView *)baseView andSetting:(NSArray *)settings {
-    if (self = [super init]) {
+    if (self = [super init]) {        
         buttons = [[NSMutableArray alloc]init];
         buttonsStatuss = [[NSMutableArray alloc]init];
         
@@ -43,23 +40,26 @@ NSMutableArray *buttonsStatuss;
             switch (type) {
                 case INPUT_TYPE_MOUSEBUTTON:{
                     int mouseButtonIdentity = 0;
-                    MouseButtonViewController *mouseButtonViewCont = [[MouseButtonViewController alloc] initWithKeyType:mouseButtonIdentity withIndex:buttonIndex andTitle:title];
+                    MouseButtonViewController *mouseButtonViewCont = [[MouseButtonViewController alloc] initWithKeyType:mouseButtonIdentity withIndex:[NSNumber numberWithInt:buttonIndex] andTitle:title];
                     
                     UIView *buttonView = [mouseButtonViewCont view];
                     [buttonView setFrame:buttonFrame];
                     [baseView addSubview:[mouseButtonViewCont view]];
+                    
+                    mouseButtonViewCont.delegate = self;
                     
                     [buttons addObject:mouseButtonViewCont];
                     break;
                 }
                 case INPUT_TYPE_KEY:{
                     int keyButtonIdentity = 0;
-                    KeyButtonViewController *keyButtonViewCont = [[KeyButtonViewController alloc] initWithKeyType:keyButtonIdentity withIndex:buttonIndex andTitle:title];
+                    KeyButtonViewController *keyButtonViewCont = [[KeyButtonViewController alloc] initWithKeyType:keyButtonIdentity withIndex:[NSNumber numberWithInt:buttonIndex] andTitle:title];
                     
                     UIView *buttonView = [keyButtonViewCont view];
                     [buttonView setFrame:buttonFrame];
                     [baseView addSubview:[keyButtonViewCont view]];
-                                        [buttons addObject:buttonView];
+                    
+                    keyButtonViewCont.delegate = self;
                     
                     [buttons addObject:keyButtonViewCont];
                     break;
@@ -75,6 +75,15 @@ NSMutableArray *buttonsStatuss;
         }
     }
     return self;
+}
+
+
+- (void) touchDown:(int)index {
+    NSLog(@"a%d", index);
+}
+
+- (void) touchUp:(int)index {
+    NSLog(@"b%d", index);
 }
 
 /**

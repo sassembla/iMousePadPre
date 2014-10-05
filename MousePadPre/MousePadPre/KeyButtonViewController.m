@@ -13,14 +13,12 @@
 @end
 
 @implementation KeyButtonViewController
+@synthesize delegate = _delegate;
 
-int buttonIndex;
-int mouseButtonType;
-NSString *buttonTitle;
 
-- (id) initWithKeyType:(int)type withIndex:(int)index andTitle:(NSString *)title {
+- (id) initWithKeyType:(int)type withIndex:(NSNumber *)index andTitle:(NSString *)title {
     if (self = [super init]) {
-        buttonIndex = index;
+        buttonIndex = [index intValue];
         mouseButtonType = type;
         
         buttonTitle = [[NSString alloc]initWithString:title];
@@ -32,9 +30,9 @@ NSString *buttonTitle;
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-//    for (UIButton *buttonView in [self.view subviews]) {
-//        [buttonView.titleLabel setText:buttonTitle];
-//    }
+    for (UIButton *buttonView in [self.view subviews]) {
+        [buttonView setTitle:buttonTitle forState:UIControlStateNormal];
+    }
 }
 
 
@@ -44,8 +42,13 @@ NSString *buttonTitle;
 }
 
 - (IBAction)touchDown:(id)sender {
-    NSLog(@"!!??");
+    [_delegate touchDown:buttonIndex];
 }
+
+- (IBAction)touchUp:(id)sender {
+    [_delegate touchUp:buttonIndex];
+}
+
 
 /*
 #pragma mark - Navigation

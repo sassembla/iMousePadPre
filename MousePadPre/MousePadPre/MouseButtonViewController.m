@@ -9,20 +9,18 @@
 #import "MouseButtonViewController.h"
 #import "TimeMine.h"
 
-
 @interface MouseButtonViewController ()
 
 @end
 
 @implementation MouseButtonViewController
 
-int buttonIndex;
-int mouseButtonType;
-NSString *buttonTitle;
+@synthesize delegate = _delegate;
 
-- (id) initWithKeyType:(int)type withIndex:(int)index andTitle:(NSString *)title {
+- (id) initWithKeyType:(int)type withIndex:(NSNumber *)index andTitle:(NSString *)title {
     if (self = [super init]) {
-        buttonIndex = index;
+        
+        buttonIndex = [index intValue];
         mouseButtonType = type;
         
         buttonTitle = [[NSString alloc]initWithString:title];
@@ -34,9 +32,9 @@ NSString *buttonTitle;
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-//    for (UIButton *buttonView in [self.view subviews]) {
-//        [buttonView.titleLabel setText:buttonTitle];
-//    }
+    for (UIButton *buttonView in [self.view subviews]) {
+        [buttonView setTitle:buttonTitle forState:UIControlStateNormal];
+    }
     
     
 }
@@ -47,11 +45,11 @@ NSString *buttonTitle;
 }
 
 - (IBAction)touchDown:(id)sender {
-    NSLog(@"down");
+    [_delegate touchDown:buttonIndex];
 }
 
 - (IBAction)touchUp:(id)sender {
-    NSLog(@"up");
+    [_delegate touchUp:buttonIndex];
 }
 
 /*

@@ -7,8 +7,14 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ButtonViewControllerDelegate.h"
 
-@interface KeyButtonViewController : UIViewController
+@interface KeyButtonViewController : UIViewController {
+    int buttonIndex;
+    int mouseButtonType;
+    NSString *buttonTitle;
+}
 
-- (id) initWithKeyType:(int)type withIndex:(int)index andTitle:(NSString *)title;
+@property (nonatomic,assign) id <ButtonViewControllerDelegate> delegate;
+- (id) initWithKeyType:(int)type withIndex:(NSNumber *)index andTitle:(NSString *)title;
 @end

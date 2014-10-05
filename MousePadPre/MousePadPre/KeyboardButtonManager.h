@@ -9,12 +9,14 @@
 #import <Foundation/Foundation.h>
 #import "KeysData.h"
 
+#import "ButtonViewControllerDelegate.h"
+
 typedef NS_ENUM(int, INPUT_TYPE) {
     INPUT_TYPE_MOUSEBUTTON,
     INPUT_TYPE_KEY
 };
 
-@interface KeyboardButtonManager : NSObject
+@interface KeyboardButtonManager : NSObject <ButtonViewControllerDelegate>
 
 - (id) initWithBaseView:(UIView *)baseView andSetting:(NSArray *)settings;
 - (KeysData *)keysData;
