@@ -7,9 +7,15 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "KSMessenger.h"
 
-@interface ViewController : UIViewController
+@interface ViewController : UIViewController {
+    KSMessenger *messenger;
+}
 
+@property (weak, nonatomic) IBOutlet UIButton *indicatorButton;
+@property (weak, nonatomic) IBOutlet UIActivityIndicatorView *indicatorCircle;
+@property (weak, nonatomic) IBOutlet UILabel *infoMessage;
 
 @end
 

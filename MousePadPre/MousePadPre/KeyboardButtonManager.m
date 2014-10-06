@@ -17,17 +17,14 @@
 @implementation KeyboardButtonManager
 
 NSMutableArray *buttons;
-NSMutableArray *buttonsStatuss;
 
 - (id) initWithBaseView:(UIView *)baseView andSetting:(NSArray *)settings {
     if (self = [super init]) {        
         buttons = [[NSMutableArray alloc]init];
-        buttonsStatuss = [[NSMutableArray alloc]init];
         
         int buttonIndex = 0;
         for (NSDictionary *buttonDict in settings) {
 
-            NSLog(@"buttonIdentity %@", buttonDict[@"identity"]);
             int type = [buttonDict[@"type"] intValue];
             
             float x = [buttonDict[@"x"] floatValue];
@@ -77,7 +74,9 @@ NSMutableArray *buttonsStatuss;
     return self;
 }
 
-
+/**
+ ボタンが押された場合に伝達を行う。
+ */
 - (void) touchDown:(int)index {
     NSLog(@"a%d", index);
 }

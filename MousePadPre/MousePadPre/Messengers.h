@@ -15,4 +15,8 @@
 #define MESSENGER_KEYBOARDMANAGER       (@"keyboardManager")
 #define MESSENGER_BUTTON                (@"button")
 
+#define MESSENGER_BONJOURCONTROLLER     (@"bonjourController")
+
+#define MESSENGER_FADEVIEWCONTROLLER    (@"fadeViewController")
+
 #endif

@@ -11,7 +11,17 @@
 
 #import "KeysData.h"
 
-@interface BonjourConnectionController : NSObject <NSStreamDelegate, NSNetServiceDelegate, NSNetServiceBrowserDelegate>
+#import "KSMessenger.h"
+
+typedef NS_ENUM(int, MESSAGE_BONJOUR) {
+    BONJOUR_MESSAGE_SEARCHING,
+    BONJOUR_MESSAGE_SEARCHED,
+    BONJOUR_MESSAGE_MISC
+};
+
+@interface BonjourConnectionController : NSObject <NSStreamDelegate, NSNetServiceDelegate, NSNetServiceBrowserDelegate> {
+    KSMessenger *messenger;
+}
 
 - (void) sendPoint:(CGPoint)point withType:(int)type andKeysData:(KeysData *)keyData;
 

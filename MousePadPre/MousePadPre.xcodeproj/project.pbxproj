@@ -14,7 +14,9 @@
 		330A2A2019CABBE300441A2A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 330A2A1F19CABBE300441A2A /* Images.xcassets */; };
 		330A2A2319CABBE300441A2A /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 330A2A2119CABBE300441A2A /* LaunchScreen.xib */; };
 		330A2A2F19CABBE300441A2A /* MousePadPreTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 330A2A2E19CABBE300441A2A /* MousePadPreTests.m */; };
-		332E7BC719E13E48006884E6 /* KSMessenger.m in Sources */ = {isa = PBXBuildFile; fileRef = 332E7BC619E13E48006884E6 /* KSMessenger.m */; };
+		332E7BCD19E194D3006884E6 /* KSMessenger.m in Sources */ = {isa = PBXBuildFile; fileRef = 332E7BCC19E194D3006884E6 /* KSMessenger.m */; };
+		332E7BD919E19D44006884E6 /* FadeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 332E7BD719E19D44006884E6 /* FadeViewController.m */; };
+		332E7BDA19E19D44006884E6 /* FadeViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 332E7BD819E19D44006884E6 /* FadeViewController.xib */; };
 		335C358419D163D5004CD23C /* TimeMine.m in Sources */ = {isa = PBXBuildFile; fileRef = 335C358319D163D5004CD23C /* TimeMine.m */; };
 		335C358819D16C86004CD23C /* KeyboardButtonManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 335C358719D16C86004CD23C /* KeyboardButtonManager.m */; };
 		335C358E19D17664004CD23C /* BonjourConnectionController.m in Sources */ = {isa = PBXBuildFile; fileRef = 335C358D19D17664004CD23C /* BonjourConnectionController.m */; };
@@ -58,10 +60,13 @@
 		330A2A2819CABBE300441A2A /* MousePadPreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MousePadPreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		330A2A2D19CABBE300441A2A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		330A2A2E19CABBE300441A2A /* MousePadPreTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MousePadPreTests.m; sourceTree = "<group>"; };
-		332E7BC519E13E48006884E6 /* KSMessenger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KSMessenger.h; sourceTree = "<group>"; };
-		332E7BC619E13E48006884E6 /* KSMessenger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KSMessenger.m; sourceTree = "<group>"; };
-		332E7BC819E13F0C006884E6 /* Messengers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Messengers.h; sourceTree = "<group>"; };
 		332E7BCA19E18155006884E6 /* ButtonViewControllerDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ButtonViewControllerDelegate.h; sourceTree = "<group>"; };
+		332E7BCB19E194D3006884E6 /* KSMessenger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KSMessenger.h; sourceTree = "<group>"; };
+		332E7BCC19E194D3006884E6 /* KSMessenger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KSMessenger.m; sourceTree = "<group>"; };
+		332E7BD519E19B96006884E6 /* Messengers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Messengers.h; sourceTree = "<group>"; };
+		332E7BD619E19D44006884E6 /* FadeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FadeViewController.h; path = FadeView/FadeViewController.h; sourceTree = "<group>"; };
+		332E7BD719E19D44006884E6 /* FadeViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = FadeViewController.m; path = FadeView/FadeViewController.m; sourceTree = "<group>"; };
+		332E7BD819E19D44006884E6 /* FadeViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = FadeViewController.xib; path = FadeView/FadeViewController.xib; sourceTree = "<group>"; };
 		335C358219D163D5004CD23C /* TimeMine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimeMine.h; sourceTree = "<group>"; };
 		335C358319D163D5004CD23C /* TimeMine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimeMine.m; sourceTree = "<group>"; };
 		335C358619D16C86004CD23C /* KeyboardButtonManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyboardButtonManager.h; sourceTree = "<group>"; };
@@ -102,9 +107,9 @@
 		330A2A0619CABBE300441A2A = {
 			isa = PBXGroup;
 			children = (
-				332E7BC419E13E48006884E6 /* KSMessenger */,
-				335C358519D163DA004CD23C /* TimeAssert */,
 				330A2A1119CABBE300441A2A /* MousePadPre */,
+				332E7BCE19E194D8006884E6 /* Messenger */,
+				335C358519D163DA004CD23C /* TimeAssert */,
 				330A2A2B19CABBE300441A2A /* MousePadPreTests */,
 				330A2A1019CABBE300441A2A /* Products */,
 			);
@@ -131,15 +136,16 @@
 				330A2A1F19CABBE300441A2A /* Images.xcassets */,
 				330A2A2119CABBE300441A2A /* LaunchScreen.xib */,
 				330A2A1219CABBE300441A2A /* Supporting Files */,
+				335C359019D17673004CD23C /* BonjourConnection */,
 				335C358619D16C86004CD23C /* KeyboardButtonManager.h */,
 				335C358719D16C86004CD23C /* KeyboardButtonManager.m */,
-				335C359019D17673004CD23C /* BonjourConnection */,
 				33657F1A19E027700074D782 /* KeysData.h */,
 				33657F1B19E027700074D782 /* KeysData.m */,
 				33657F4219E105C80074D782 /* MouseButton */,
 				33657F4319E105D20074D782 /* KeyButton */,
 				33657F4B19E105F60074D782 /* ButtonDeleteButton */,
-				332E7BC819E13F0C006884E6 /* Messengers.h */,
+				332E7BD519E19B96006884E6 /* Messengers.h */,
+				332E7BDB19E19D4F006884E6 /* FadeView */,
 			);
 			path = MousePadPre;
 			sourceTree = "<group>";
@@ -170,13 +176,23 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		332E7BC419E13E48006884E6 /* KSMessenger */ = {
+		332E7BCE19E194D8006884E6 /* Messenger */ = {
 			isa = PBXGroup;
 			children = (
-				332E7BC519E13E48006884E6 /* KSMessenger.h */,
-				332E7BC619E13E48006884E6 /* KSMessenger.m */,
+				332E7BCB19E194D3006884E6 /* KSMessenger.h */,
+				332E7BCC19E194D3006884E6 /* KSMessenger.m */,
 			);
-			path = KSMessenger;
+			name = Messenger;
+			sourceTree = "<group>";
+		};
+		332E7BDB19E19D4F006884E6 /* FadeView */ = {
+			isa = PBXGroup;
+			children = (
+				332E7BD619E19D44006884E6 /* FadeViewController.h */,
+				332E7BD719E19D44006884E6 /* FadeViewController.m */,
+				332E7BD819E19D44006884E6 /* FadeViewController.xib */,
+			);
+			name = FadeView;
 			sourceTree = "<group>";
 		};
 		335C358519D163DA004CD23C /* TimeAssert */ = {
@@ -314,6 +330,7 @@
 				330A2A1E19CABBE300441A2A /* Main.storyboard in Resources */,
 				330A2A2319CABBE300441A2A /* LaunchScreen.xib in Resources */,
 				330A2A2019CABBE300441A2A /* Images.xcassets in Resources */,
+				332E7BDA19E19D44006884E6 /* FadeViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -338,12 +355,13 @@
 				335C358E19D17664004CD23C /* BonjourConnectionController.m in Sources */,
 				335C358819D16C86004CD23C /* KeyboardButtonManager.m in Sources */,
 				33657F1C19E027700074D782 /* KeysData.m in Sources */,
-				332E7BC719E13E48006884E6 /* KSMessenger.m in Sources */,
+				332E7BCD19E194D3006884E6 /* KSMessenger.m in Sources */,
 				335C358419D163D5004CD23C /* TimeMine.m in Sources */,
 				330A2A1819CABBE300441A2A /* AppDelegate.m in Sources */,
 				33657F4719E105F00074D782 /* ButtonDeleteButtonViewController.m in Sources */,
 				33657F3319E0F0F90074D782 /* KeyButtonViewController.m in Sources */,
 				33657F4F19E108260074D782 /* MouseButtonViewController.m in Sources */,
+				332E7BD919E19D44006884E6 /* FadeViewController.m in Sources */,
 				330A2A1519CABBE300441A2A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -479,7 +497,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 2;
 			};
 			name = Debug;
 		};
@@ -494,7 +512,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 2;
 			};
 			name = Release;
 		};

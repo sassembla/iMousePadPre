@@ -44,7 +44,6 @@ int state;
 
 CGFloat SCREEN_WIDTH;
 CGFloat SCREEN_HEIGHT;
-CGFloat moveRatio;
 
 NSMutableDictionary *screenInfo;
 
@@ -61,13 +60,6 @@ NSMutableDictionary *screenInfo;
     screenInfo = [[NSMutableDictionary alloc]init];
     SCREEN_WIDTH = screen.frame.size.width;
     SCREEN_HEIGHT = screen.frame.size.height;
-    
-    
-    moveRatio = 1.0f;
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/04 21:41:01" withLimitSec:100000 withComment:@"マウスの動作倍率、それなりに利用価値のある値だ。可変にしたいけどいつかだな。ただ、サーバ側で持つのは駄目だな。"];
-    
-    
-    pointerStatus = @{};
     
     [self publishBonjourNetService];
 }
@@ -256,8 +248,8 @@ CGPoint beforeInputPoint;
             /*
              差分の反映
              */
-            currentMousePoint.x += (inputPoint.x - beforeInputPoint.x) * moveRatio;
-            currentMousePoint.y += (inputPoint.y - beforeInputPoint.y) * moveRatio;
+            currentMousePoint.x += (inputPoint.x - beforeInputPoint.x);
+            currentMousePoint.y += (inputPoint.y - beforeInputPoint.y);
             break;
             
         default:

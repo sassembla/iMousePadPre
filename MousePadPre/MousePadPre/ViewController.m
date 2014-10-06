@@ -12,6 +12,9 @@
 #import "KeyboardButtonManager.h"
 #import "BonjourConnectionController.h"
 
+#import "Messengers.h"
+
+#import "FadeViewController.h"
 
 @interface ViewController ()
 @end
@@ -25,7 +28,6 @@
 int connectionType = CONNECTIONTYPE_BONJOUR;
 BonjourConnectionController *bonConnectCont;
 
-
 KeyboardButtonManager *buttonManager;
 
 
@@ -35,32 +37,22 @@ KeyboardButtonManager *buttonManager;
 
 
 - (void)viewDidLoad {
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/06 23:35:44" withLimitSec:100000 withComment:@"倍率入れたい。ピクセルマッチさせない的な。"];
     [super viewDidLoad];
-    switch (connectionType) {
-        case CONNECTIONTYPE_BONJOUR:{
-            bonConnectCont = [[BonjourConnectionController alloc] init];
-            break;
-        }
-        case CONNECTIONTYPE_BLUETOOTHLE:{
-            [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:25:42" withLimitSec:0 withComment:@"いつかなんとかしたい。"];
-            break;
-        }
-            
-        default:
-            break;
-    }
+    
+    messenger = [[KSMessenger alloc]initWithBodyID:self withSelector:@selector(receiver:) withName:MESSENGER_MAINVIEWCONTROLLER];
 
     /**
      設定ファイルを読み込む
      存在しなければデフォルトを読む
      */
     NSDictionary *defRightMouseButtonDict = @{
-                                         @"identity":@"Right",
-                                         @"type":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
-                                         @"x":@200.0f,
-                                         @"y":@100.0f,
-                                         @"title":@"R"
-                                         };
+                                              @"identity":@"Right",
+                                              @"type":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
+                                              @"x":@200.0f,
+                                              @"y":@100.0f,
+                                              @"title":@"R"
+                                              };
     
     NSDictionary *defLeftMouseButtonDict = @{
                                              @"identity":@"Left",
@@ -91,14 +83,82 @@ KeyboardButtonManager *buttonManager;
     NSArray *settings = @[defRightMouseButtonDict, defLeftMouseButtonDict, defCenterMouseButtonDict, defKeyButtonDict];
     
     buttonManager = [[KeyboardButtonManager alloc]initWithBaseView:self.view andSetting:settings];
+    
+    
+    switch (connectionType) {
+        case CONNECTIONTYPE_BONJOUR:{
+            bonConnectCont = [[BonjourConnectionController alloc] init];
+            break;
+        }
+        case CONNECTIONTYPE_BLUETOOTHLE:{
+            [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:25:42" withLimitSec:0 withComment:@"いつかなんとかしたい。"];
+            break;
+        }
+            
+        default:
+            break;
+    }
+    
+    
+//    FadeViewController *fadeViewCont = [[FadeViewController alloc] initFadeViewWithBarseView:self.view.frame];
+//    [self.view addSubview:fadeViewCont.view];
 }
 
 
-
+/**
+ いろんな箇所からのコントロールの受け取り
+ */
 - (void) receiver:(NSNotification *)notif {
-    NSLog(@"notif %@", notif);
+    NSDictionary *paramsDict = [messenger tagValueDictionaryFromNotification:notif];
+    
+    /*
+     bonjourからの通知
+     */
+    switch ([messenger execFrom:MESSENGER_BONJOURCONTROLLER viaNotification:notif]) {
+        case BONJOUR_MESSAGE_SEARCHING:{
+            [_indicatorButton setTitle:@"mousepad server connection searching..." forState:UIControlStateNormal];
+            [_indicatorCircle setHidden:NO];
+            
+            [messenger call:MESSENGER_FADEVIEWCONTROLLER withExec:FADEOUT_MESSAGE_FADEIN, nil];
+            [_infoMessage setText:@""];
+            break;
+        }
+            
+        case BONJOUR_MESSAGE_SEARCHED:{
+            NSString *connectedServerName = paramsDict[@"connectedServerName"];
+            [_indicatorButton setTitle:connectedServerName forState:UIControlStateNormal];
+            [_indicatorCircle setHidden:YES];
+            
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"bonjour connected."
+                                                            message:@"ok"
+                                                           delegate:nil
+                                                  cancelButtonTitle:@"OK"
+                                                  otherButtonTitles:nil];
+            [alert show];
+            [messenger call:MESSENGER_FADEVIEWCONTROLLER withExec:FADEOUT_MESSAGE_FADEOUT, nil];
+            
+            break;
+        }
+            
+        case BONJOUR_MESSAGE_MISC:{
+            NSString *informationMessage = paramsDict[@"info"];
+            [_infoMessage setText:informationMessage];
+            break;
+        }
+            
+        default:
+            break;
+    }
+    
+    /*
+     bluetootuからの通知
+     */
+    
+    
+    /*
+     FadeViewからの通知
+     */
 }
-
 
 
 /**
