@@ -11,11 +11,10 @@
 
 @interface MouseButtonViewController : UIViewController {
     int buttonIndex;
-    int mouseButtonType;
     NSString *buttonTitle;
 }
 
 @property (nonatomic,assign) id <ButtonViewControllerDelegate> delegate;
-- (id) initWithKeyType:(int)type withIndex:(NSNumber *)index andTitle:(NSString *)title;
+- (id) initWithIndex:(NSNumber *)index andTitle:(NSString *)title;
 
 @end

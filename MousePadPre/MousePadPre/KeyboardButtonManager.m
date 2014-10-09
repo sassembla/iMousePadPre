@@ -16,57 +16,72 @@
 
 @implementation KeyboardButtonManager
 
-NSMutableArray *buttons;
+NSMutableDictionary *buttonDict;
+KeysData currentKeysData;
+
 
 - (id) initWithBaseView:(UIView *)baseView andSetting:(NSArray *)settings {
     if (self = [super init]) {        
-        buttons = [[NSMutableArray alloc]init];
+        buttonDict = [[NSMutableDictionary alloc]init];
         
         int buttonIndex = 0;
-        for (NSDictionary *buttonDict in settings) {
-
-            int type = [buttonDict[@"type"] intValue];
+        for (NSDictionary *buttonInfoDict in settings) {
             
-            float x = [buttonDict[@"x"] floatValue];
-            float y = [buttonDict[@"y"] floatValue];
+            int inputType = [buttonInfoDict[@"inputType"] intValue];
+            
+            float x = [buttonInfoDict[@"x"] floatValue];
+            float y = [buttonInfoDict[@"y"] floatValue];
             
             CGRect buttonFrame = CGRectMake(x, y, 100, 100);
             
-            NSString *title = buttonDict[@"title"];
+            NSString *title = buttonInfoDict[@"title"];
             
-            switch (type) {
+            // set layout.
+            switch (inputType) {
                 case INPUT_TYPE_MOUSEBUTTON:{
-                    int mouseButtonIdentity = 0;
-                    MouseButtonViewController *mouseButtonViewCont = [[MouseButtonViewController alloc] initWithKeyType:mouseButtonIdentity withIndex:[NSNumber numberWithInt:buttonIndex] andTitle:title];
                     
-                    UIView *buttonView = [mouseButtonViewCont view];
-                    [buttonView setFrame:buttonFrame];
-                    [baseView addSubview:[mouseButtonViewCont view]];
+                    
+                    MouseButtonViewController *mouseButtonViewCont = [[MouseButtonViewController alloc] initWithIndex:[NSNumber numberWithInt:buttonIndex] andTitle:title];
+                    
+                    {
+                        UIView *buttonView = [mouseButtonViewCont view];
+                        [buttonView setFrame:buttonFrame];
+                        [baseView addSubview:[mouseButtonViewCont view]];
+                    }
                     
                     mouseButtonViewCont.delegate = self;
                     
-                    [buttons addObject:mouseButtonViewCont];
+                    buttonDict[[NSNumber numberWithInt:buttonIndex]] = @{
+                                                                         @"inputType":buttonInfoDict[@"inputType"],
+                                                                         @"identity":buttonInfoDict[@"identity"],
+                                                                         @"controller":mouseButtonViewCont
+                                                                         };
+                    
                     break;
                 }
                 case INPUT_TYPE_KEY:{
-                    int keyButtonIdentity = 0;
-                    KeyButtonViewController *keyButtonViewCont = [[KeyButtonViewController alloc] initWithKeyType:keyButtonIdentity withIndex:[NSNumber numberWithInt:buttonIndex] andTitle:title];
+                    KeyButtonViewController *keyButtonViewCont = [[KeyButtonViewController alloc] initWithIndex:[NSNumber numberWithInt:buttonIndex] andTitle:title];
                     
-                    UIView *buttonView = [keyButtonViewCont view];
-                    [buttonView setFrame:buttonFrame];
-                    [baseView addSubview:[keyButtonViewCont view]];
+                    {
+                        UIView *buttonView = [keyButtonViewCont view];
+                        [buttonView setFrame:buttonFrame];
+                        [baseView addSubview:[keyButtonViewCont view]];
+                    }
                     
                     keyButtonViewCont.delegate = self;
                     
-                    [buttons addObject:keyButtonViewCont];
+                    buttonDict[[NSNumber numberWithInt:buttonIndex]] = @{
+                                                                         @"inputType":buttonInfoDict[@"inputType"],
+                                                                         @"identity":buttonInfoDict[@"identity"],
+                                                                         @"controller":keyButtonViewCont
+                                                                         };
+                    
                     break;
                 }
                     
                 default:
                     break;
             }
-            
-
             
             buttonIndex ++;
         }
@@ -75,22 +90,61 @@ NSMutableArray *buttons;
 }
 
 /**
- ボタンが押された場合に伝達を行う。
+ ボタンが押されたことを受け取る
  */
 - (void) touchDown:(int)index {
-    NSLog(@"a%d", index);
+    NSString *input = buttonDict[[NSNumber numberWithInt:index]][@"identity"];
+    int inputType = [buttonDict[[NSNumber numberWithInt:index]][@"inputType"] intValue];
+    
+    switch (inputType) {
+        case INPUT_TYPE_MOUSEBUTTON:{
+            if ([input isEqualToString:@"R"]) {
+                currentKeysData.right = true;
+            } else if ([input isEqualToString:@"L"]) {
+                currentKeysData.left = true;
+            } else if ([input isEqualToString:@"C"]) {
+                currentKeysData.center = true;
+            }
+            break;
+        }
+        case INPUT_TYPE_KEY:{
+            
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 - (void) touchUp:(int)index {
-    NSLog(@"b%d", index);
+    NSString *input = buttonDict[[NSNumber numberWithInt:index]][@"identity"];
+    int inputType = [buttonDict[[NSNumber numberWithInt:index]][@"inputType"] intValue];
+    
+    switch (inputType) {
+        case INPUT_TYPE_MOUSEBUTTON:{
+            if ([input isEqualToString:@"R"]) {
+                currentKeysData.right = false;
+            } else if ([input isEqualToString:@"L"]) {
+                currentKeysData.left = false;
+            } else if ([input isEqualToString:@"C"]) {
+                currentKeysData.center = false;
+            }
+            break;
+        }
+        case INPUT_TYPE_KEY:{
+            
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 /**
  現在押されているボタンの情報を返す
  */
-- (KeysData *)keysData {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/04 22:35:52" withLimitSec:100000 withComment:@"押されているキーのデータを返す"];
-    return nil;
+- (KeysData)keysData {
+    return currentKeysData;
 }
 
 

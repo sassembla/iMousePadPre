@@ -6,21 +6,18 @@
 //  Copyright (c) 2014年 KISSAKI. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
+struct KeysData {
+    bool left;
+    bool right;
+    bool center;
+    Byte key0;
+    Byte key1;
+    Byte key2;
+    Byte key3;
+    Byte key4;
+    Byte key5;
+    Byte key6;
+    Byte key7;
+};
 
-@interface KeysData : NSObject
-
-@property bool left;
-@property bool right;
-@property bool center;
-
-@property Byte key0;
-@property Byte key1;
-@property Byte key2;
-@property Byte key3;
-@property Byte key4;
-@property Byte key5;
-@property Byte key6;
-@property Byte key7;
-
-@end
+typedef struct KeysData KeysData;

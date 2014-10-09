@@ -281,7 +281,7 @@ typedef struct MousePadData MousePadData;
 /**
  ポイントの情報を送付する
  */
-- (void) sendPoint:(CGPoint)point withType:(int)type andKeysData:(KeysData *)keyData {
+- (void) sendPoint:(CGPoint)point withType:(int)type andKeysData:(KeysData)KeysData {
     if (![self isBonjourConnected]) return;
     if (bonjourState != STATE_BONJOUR_CONNECTED) return;
     
@@ -289,18 +289,18 @@ typedef struct MousePadData MousePadData;
     mousePadData.mousePoint = point;
     mousePadData.mouseEventType = type;
     
-    mousePadData.left = keyData.left;
-    mousePadData.left = keyData.right;
-    mousePadData.left = keyData.center;
+    mousePadData.left = KeysData.left;
+    mousePadData.left = KeysData.right;
+    mousePadData.left = KeysData.center;
     
-    mousePadData.key0 = keyData.key0;
-    mousePadData.key1 = keyData.key1;
-    mousePadData.key2 = keyData.key2;
-    mousePadData.key3 = keyData.key3;
-    mousePadData.key4 = keyData.key4;
-    mousePadData.key5 = keyData.key5;
-    mousePadData.key6 = keyData.key6;
-    mousePadData.key7 = keyData.key7;
+    mousePadData.key0 = KeysData.key0;
+    mousePadData.key1 = KeysData.key1;
+    mousePadData.key2 = KeysData.key2;
+    mousePadData.key3 = KeysData.key3;
+    mousePadData.key4 = KeysData.key4;
+    mousePadData.key5 = KeysData.key5;
+    mousePadData.key6 = KeysData.key6;
+    mousePadData.key7 = KeysData.key7;
     
     
     NSData *data = [NSData dataWithBytes:&mousePadData length:sizeof(MousePadData)];

@@ -16,9 +16,10 @@ typedef NS_ENUM(int, INPUT_TYPE) {
     INPUT_TYPE_KEY
 };
 
+
 @interface KeyboardButtonManager : NSObject <ButtonViewControllerDelegate>
 
 - (id) initWithBaseView:(UIView *)baseView andSetting:(NSArray *)settings;
-- (KeysData *)keysData;
+- (KeysData)keysData;
 
 @end

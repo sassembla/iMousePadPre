@@ -17,11 +17,10 @@
 
 @synthesize delegate = _delegate;
 
-- (id) initWithKeyType:(int)type withIndex:(NSNumber *)index andTitle:(NSString *)title {
+- (id) initWithIndex:(NSNumber *)index andTitle:(NSString *)title {
     if (self = [super init]) {
         
         buttonIndex = [index intValue];
-        mouseButtonType = type;
         
         buttonTitle = [[NSString alloc]initWithString:title];
     }

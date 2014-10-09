@@ -16,11 +16,9 @@
 @synthesize delegate = _delegate;
 
 
-- (id) initWithKeyType:(int)type withIndex:(NSNumber *)index andTitle:(NSString *)title {
+- (id) initWithIndex:(NSNumber *)index andTitle:(NSString *)title {
     if (self = [super init]) {
-        buttonIndex = [index intValue];
-        mouseButtonType = type;
-        
+        buttonIndex = [index intValue];        
         buttonTitle = [[NSString alloc]initWithString:title];
     }
     

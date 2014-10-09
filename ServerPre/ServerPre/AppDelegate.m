@@ -170,7 +170,6 @@ CGPoint beforeInputPoint;
 
 /*
  キーのdownを実行する
- code1, code2にそれぞれ4つのキーを入れている。
  */
 - (void) keysStatusUpdate:(CGPoint)inputPoint
                      key0:(Byte)key0

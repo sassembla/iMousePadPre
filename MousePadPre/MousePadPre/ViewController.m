@@ -37,26 +37,27 @@ KeyboardButtonManager *buttonManager;
 
 
 - (void)viewDidLoad {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/06 23:35:44" withLimitSec:100000 withComment:@"倍率入れたい。ピクセルマッチさせない的な。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/08 22:28:47" withLimitSec:100000 withComment:@"倍率入れたい。ピクセルマッチさせない的な。"];
     [super viewDidLoad];
     
     messenger = [[KSMessenger alloc]initWithBodyID:self withSelector:@selector(receiver:) withName:MESSENGER_MAINVIEWCONTROLLER];
-
+    
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/08 22:28:51" withLimitSec:11000000 withComment:@"設定ファイルの事を考える、userPrefでいいはず"];
     /**
      設定ファイルを読み込む
      存在しなければデフォルトを読む
      */
     NSDictionary *defRightMouseButtonDict = @{
-                                              @"identity":@"Right",
-                                              @"type":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
+                                              @"identity":@"R",
+                                              @"inputType":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
                                               @"x":@200.0f,
                                               @"y":@100.0f,
                                               @"title":@"R"
                                               };
     
     NSDictionary *defLeftMouseButtonDict = @{
-                                             @"identity":@"Left",
-                                             @"type":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
+                                             @"identity":@"L",
+                                             @"inputType":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
                                              @"x":@300.0f,
                                              @"y":@100.0f,
                                              @"title":@"L"
@@ -64,17 +65,16 @@ KeyboardButtonManager *buttonManager;
 
     
     NSDictionary *defCenterMouseButtonDict = @{
-                                               @"identity":@"Center",
-                                               @"type":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
+                                               @"identity":@"C",
+                                               @"inputType":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
                                                @"x":@400.0f,
                                                @"y":@100.0f,
                                                @"title":@"C"
                                                };
 
-    
     NSDictionary *defKeyButtonDict = @{
                                        @"identity":@"K",
-                                       @"type":[NSNumber numberWithInt:INPUT_TYPE_KEY],
+                                       @"inputType":[NSNumber numberWithInt:INPUT_TYPE_KEY],
                                        @"x":@100.0f,
                                        @"y":@100.0f,
                                        @"title":@"K"
@@ -197,7 +197,7 @@ KeyboardButtonManager *buttonManager;
  キーの押下状態と、カーソルの移動状態を通知する。
  */
 - (void) setMovePoint:(CGPoint)point withMouseEventType:(int)type {
-    KeysData *keysData = nil;
+    KeysData keysData = [buttonManager keysData];
 
     switch (connectionType) {
         case CONNECTIONTYPE_BONJOUR:{
@@ -221,7 +221,7 @@ KeyboardButtonManager *buttonManager;
 /**
  ボタンのマネージャからキー情報を取得する
  */
-- (KeysData *) readKeysData {
+- (KeysData) readKeysData {
     return [buttonManager keysData];
 }
 
