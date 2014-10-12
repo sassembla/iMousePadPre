@@ -16,8 +16,8 @@
 
 - (id) init {
     if (self = [super init]) {
-        [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 22:01:54" withLimitSec:100000 withComment:@"サーバ側が落ちて切断されたときの受け取りが無い、気がする。"];
-        [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:19:21" withLimitSec:100000 withComment:@"接続リトライ系の機構が必要。"];
+        [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 14:27:22" withLimitSec:100000 withComment:@"サーバ側が落ちて切断されたときの受け取りが無い、気がする。"];
+        [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 14:27:25" withLimitSec:100000 withComment:@"接続リトライ系の機構が必要。"];
         
         messenger = [[KSMessenger alloc] initWithBodyID:self withSelector:@selector(receiver:) withName:MESSENGER_BONJOURCONTROLLER];
         [messenger connectParent:MESSENGER_MAINVIEWCONTROLLER];
@@ -118,7 +118,7 @@ NSOutputStream *bonjourOutputStream;
     
     [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"netService connecting"], nil];
     
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:20:09" withLimitSec:100000 withComment:@"クライアントだけをカットすると、\
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 9:20:09" withLimitSec:100000 withComment:@"クライアントだけをカットすると、\
      n回目以降でサーバ側がなんもできなくなるので、\
      根本からの接続ポイント作り直しをオートマチックに行う仕掛けが必要そう。 nは通信方式の数に依存。勝手にlocalとか着いてるからな。。"];
     
@@ -164,7 +164,7 @@ NSOutputStream *bonjourOutputStream;
  */
 - (void)netServiceDidResolveAddress:(NSNetService *)sender {
     NSLog(@"connected sender is %@", sender);
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:29:16" withLimitSec:100000 withComment:@"リストで接続先の判定を行う感じ。事前になにか要素をセットしておく形にするか。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 9:29:16" withLimitSec:100000 withComment:@"リストで接続先の判定を行う感じ。事前になにか要素をセットしておく形にするか。"];
     
     NSInputStream *inputStream;
     
@@ -258,7 +258,7 @@ NSOutputStream *bonjourOutputStream;
 }
 
 
-
+// 2014/10/12 14:13:16
 struct MousePadData {
     CGPoint mousePoint;
     int mouseEventType;
@@ -266,14 +266,7 @@ struct MousePadData {
     bool right;
     bool center;
     
-    Byte key0;
-    Byte key1;
-    Byte key2;
-    Byte key3;
-    Byte key4;
-    Byte key5;
-    Byte key6;
-    Byte key7;
+    Byte keySlots[8];
 };
 
 typedef struct MousePadData MousePadData;
@@ -290,20 +283,26 @@ typedef struct MousePadData MousePadData;
     mousePadData.mouseEventType = type;
     
     mousePadData.left = KeysData.left;
-    mousePadData.left = KeysData.right;
-    mousePadData.left = KeysData.center;
+    mousePadData.right = KeysData.right;
+    mousePadData.center = KeysData.center;
     
-    mousePadData.key0 = KeysData.key0;
-    mousePadData.key1 = KeysData.key1;
-    mousePadData.key2 = KeysData.key2;
-    mousePadData.key3 = KeysData.key3;
-    mousePadData.key4 = KeysData.key4;
-    mousePadData.key5 = KeysData.key5;
-    mousePadData.key6 = KeysData.key6;
-    mousePadData.key7 = KeysData.key7;
+    mousePadData.keySlots[0] = KeysData.keySlots[0];
+    mousePadData.keySlots[1] = KeysData.keySlots[1];
+    mousePadData.keySlots[2] = KeysData.keySlots[2];
+    mousePadData.keySlots[3] = KeysData.keySlots[3];
+    mousePadData.keySlots[4] = KeysData.keySlots[4];
+    mousePadData.keySlots[5] = KeysData.keySlots[5];
+    mousePadData.keySlots[6] = KeysData.keySlots[6];
+    mousePadData.keySlots[7] = KeysData.keySlots[7];
     
     
     NSData *data = [NSData dataWithBytes:&mousePadData length:sizeof(MousePadData)];
+    [bonjourOutputStream write:[data bytes] maxLength:[data length]];
+}
+
+- (void) sendHeartBeat {
+    MousePadData heartBeat;
+    NSData *data = [NSData dataWithBytes:&heartBeat length:sizeof(MousePadData)];
     [bonjourOutputStream write:[data bytes] maxLength:[data length]];
 }
 

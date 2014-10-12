@@ -113,6 +113,8 @@ NSMutableDictionary *screenInfo;
     } else {
         [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_OPEN_BONJOUR withTitle:@"server failed" message:@"failed to locate bonjour network. reboot?"];
     }
+
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/09 10:19:29" withLimitSec:1000000 withComment:@"いつか、ハートビートが必要、キーもそれにのっけるか。60FPSだと高そう、、？    なので、弱くても良いと思うしどっちからいってもいい、、、わけじゃないか、Inputオンリーなほうが未来がある。"];
 }
 
 - (void) setState:(int)nextState {
@@ -130,36 +132,32 @@ CGPoint beforeInputPoint;
 - (void) execute:(NSData *)data {
     switch (state) {
         case BONJOUR_RECEIVER_ACCEPTED_IOS:{
+            
+            
             /*
              マウス入力とキー入力の解析と再現を行う。
              */
-            struct MousePadData mousePadData;
-            [data getBytes:&mousePadData length:sizeof(mousePadData)];
-
-            /*
-             キーの入出力
-             */
-            [self keysStatusUpdate:mousePadData.mousePoint
-                              key0:mousePadData.key0
-                              key1:mousePadData.key1
-                              key0:mousePadData.key2
-                              key1:mousePadData.key3
-                              key0:mousePadData.key4
-                              key1:mousePadData.key5
-                              key0:mousePadData.key6
-                              key1:mousePadData.key7
-             ];
-            
-            /*
-             マウスのボタン入力
-             */
-            [self mouseButtonStatusUpdate:mousePadData.mousePoint left:mousePadData.left right:mousePadData.right andCenter:mousePadData.center];
+            MousePadData mousePadData;
+            [data getBytes:&mousePadData length:sizeof(MousePadData)];
             
             /*
              マウスの位置入力
              */
-            [self mouseUpdate:mousePadData.mousePoint withType:mousePadData.mouseEventType];
+            CGPoint emitPoint = [self mouseUpdate:mousePadData.mousePoint withType:mousePadData.mouseEventType];
             
+            
+            /*
+             マウスのボタン入力
+             */
+            [self mouseButtonStatusUpdate:emitPoint left:mousePadData.left right:mousePadData.right andCenter:mousePadData.center];
+            
+            
+            /*
+             キーの入出力
+             */
+            [self keysStatusUpdate:emitPoint
+                          keySlots:mousePadData.keySlots
+             ];
             break;
         }
             
@@ -168,23 +166,35 @@ CGPoint beforeInputPoint;
     }
 }
 
+// ローカルで保持するキーのbyte一覧 8
+char keySlots[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+
 /*
  キーのdownを実行する
  */
 - (void) keysStatusUpdate:(CGPoint)inputPoint
-                     key0:(Byte)key0
-                     key1:(Byte)key1
-                     key0:(Byte)key2
-                     key1:(Byte)key3
-                     key0:(Byte)key4
-                     key1:(Byte)key5
-                     key0:(Byte)key6
-                     key1:(Byte)key7 {
-    
+                 keySlots:(Byte [])keySlots {
+    for (int i = 0; i < 8; i++) {
+        Byte a = keySlots[i];
+        NSLog(@"a %d", a);
+    }
+//    NSLog(@"key0 %d", key0);
+//    NSLog(@"key1 %d", key1);
+//    NSLog(@"key2 %d", key2);
+//    NSLog(@"key3 %d", key3);//40,,,? 0x28 16  2 + 8
+//    NSLog(@"key4 %d", key4);
+//    if (key3 != 0) {
+//        
+//        [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 23:14:46" withLimitSec:100000 withComment:@"0でなければ、そのキーをオンにする。次に0になったら、そのキーをオフにする。"];
+//    }
 }
 
 /*
- マウスのdownを実行する */
+ マウスのdownを実行する 
+ 状態を持ち、trueだったら離す、というのが必要になる。
+ */
+bool leftIsDown;
 - (void) mouseButtonStatusUpdate:(CGPoint)inputPoint left:(bool)left right:(bool)right andCenter:(bool)center {
     /*
      マウスの 左/右/その他のボタン
@@ -194,7 +204,21 @@ CGPoint beforeInputPoint;
         CGEventRef downLeft = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseDown, inputPoint, kCGMouseButtonLeft);
         CGEventPost(kCGHIDEventTap, downLeft);
         CFRelease(downLeft);
+        
+        leftIsDown = true;
+    } else {
+        if (leftIsDown) {
+            CGEventRef upLeft = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseUp, inputPoint, kCGMouseButtonLeft);
+            CGEventPost(kCGHIDEventTap, upLeft);
+            CFRelease(upLeft);
+            
+            leftIsDown =false;
+        }
     }
+    
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 23:12:28" withLimitSec:100000 withComment:@"マウスはカーソルに付随すべき、みたいなアイデアのほうがよさげ。両手使わないでいいし。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 23:12:32" withLimitSec:10000 withComment:@"ボタンの入力時のみでの通信をつくるべき。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 23:12:36" withLimitSec:10000 withComment:@"ドラッグイベントはそれはそれで存在するような気がする。イベントとしての発行を同時にやっちゃうのがいいのか、それともダウンのままで勝手にインターバルが発生するのか、、。受け側で分解するのがいいのか、それとも。"];
     
     if (right) {
         CGEventRef downRight = CGEventCreateMouseEvent(NULL, kCGEventRightMouseDown, inputPoint, kCGMouseButtonRight);
@@ -202,11 +226,11 @@ CGPoint beforeInputPoint;
         CFRelease(downRight);
     }
 
-    if (center) {
-        CGEventRef downCenter = CGEventCreateMouseEvent(NULL, kCGEventRightMouseDown, inputPoint, kCGMouseButtonCenter);
-        CGEventPost(kCGHIDEventTap, downCenter);
-        CFRelease(downCenter);
-    }
+//    if (center) {
+//        CGEventRef downCenter = CGEventCreateMouseEvent(NULL, kCGEvent, inputPoint, kCGMouseButtonCenter);
+//        CGEventPost(kCGHIDEventTap, downCenter);
+//        CFRelease(downCenter);
+//    }
     
     
 //    CGEventRef keyA = CGEventCreateKeyboardEvent (NULL, (CGKeyCode)52, true);
@@ -237,7 +261,7 @@ CGPoint beforeInputPoint;
 /*
  マウスの移動イベントを実行する
  */
-- (void) mouseUpdate:(CGPoint)inputPoint withType:(int)mouseEventType {
+- (CGPoint) mouseUpdate:(CGPoint)inputPoint withType:(int)mouseEventType {
     
     switch (mouseEventType) {
         case MOUSEVENT_BEGAN:{
@@ -275,6 +299,8 @@ CGPoint beforeInputPoint;
     
     // 記録ポイントの更新
     beforeInputPoint = inputPoint;
+    
+    return currentMousePoint;
 }
 
 /*
@@ -388,11 +414,8 @@ CGPoint beforeInputPoint;
 
 
 - (void) acceptConnection:(NSNotification *)notif {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 2:31:37" withLimitSec:100000 withComment:@"通信ができるようになった際のハンドラ。反対側に対してなんか返さんとな。\
-     この初期通信化時点でパラメータ返すと差分がでてしまう気がするので、iOS側から接続先の情報が取れる手段を見つけた方が良い。"];
-    
     NSString *connectedHandle = [notif userInfo][NSFileHandleNotificationFileHandleItem];
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 2:31:52" withLimitSec:100000 withComment:@"サーバ側、誰と繋がったか表示したいがさて、名前がわからない。socketから引けって感じなのかな。とりあえず後回し。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 2:31:52" withLimitSec:100000 withComment:@"サーバ側、誰と繋がったか表示したいがさて、名前がわからない。socketから引けって感じなのかな。とりあえず後回し。"];
     
     [self setState:BONJOUR_RECEIVER_ACCEPTED_IOS];
     

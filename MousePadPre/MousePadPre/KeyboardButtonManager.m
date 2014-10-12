@@ -13,6 +13,8 @@
 #import "MouseButtonViewController.h"
 #import "KeyButtonViewController.h"
 
+#import "Messengers.h"
+
 
 @implementation KeyboardButtonManager
 
@@ -21,8 +23,11 @@ KeysData currentKeysData;
 
 
 - (id) initWithBaseView:(UIView *)baseView andSetting:(NSArray *)settings {
-    if (self = [super init]) {        
+    if (self = [super init]) {
         buttonDict = [[NSMutableDictionary alloc]init];
+        
+        messenger = [[KSMessenger alloc]initWithBodyID:self withSelector:@selector(receiver:) withName:MESSENGER_KEYBOARDMANAGER];
+        [messenger connectParent:MESSENGER_MAINVIEWCONTROLLER];
         
         int buttonIndex = 0;
         for (NSDictionary *buttonInfoDict in settings) {
@@ -89,6 +94,14 @@ KeysData currentKeysData;
     return self;
 }
 
+
+
+- (void) receiver:(NSNotification *)notif {
+    
+}
+
+
+
 /**
  ボタンが押されたことを受け取る
  */
@@ -108,14 +121,26 @@ KeysData currentKeysData;
             break;
         }
         case INPUT_TYPE_KEY:{
-            
+            currentKeysData.keySlots[index] = getKeyCodeFromInput(input);
+
             break;
         }
         default:
             break;
     }
+    [messenger callParent:BUTTON_MESSAGE_UPDATED, nil];
 }
 
+Byte getKeyCodeFromInput (NSString *input) {
+    if ([input isEqualToString:@"K"]) {
+        return 0x28;
+    }
+    return 0x00;
+}
+
+/**
+ ボタンが離されたことを受け取る
+ */
 - (void) touchUp:(int)index {
     NSString *input = buttonDict[[NSNumber numberWithInt:index]][@"identity"];
     int inputType = [buttonDict[[NSNumber numberWithInt:index]][@"inputType"] intValue];
@@ -132,12 +157,17 @@ KeysData currentKeysData;
             break;
         }
         case INPUT_TYPE_KEY:{
+            /*
+             indexに対して、空データを入力する。
+             */
+            currentKeysData.keySlots[index] = 0x00;
             
             break;
         }
         default:
             break;
     }
+    [messenger callParent:BUTTON_MESSAGE_UPDATED, nil];
 }
 
 /**

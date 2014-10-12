@@ -7,9 +7,13 @@
 //
 
 #import <Foundation/Foundation.h>
+
+#import "KSMessenger.h"
+
 #import "KeysData.h"
 
 #import "ButtonViewControllerDelegate.h"
+
 
 typedef NS_ENUM(int, INPUT_TYPE) {
     INPUT_TYPE_MOUSEBUTTON,
@@ -17,7 +21,15 @@ typedef NS_ENUM(int, INPUT_TYPE) {
 };
 
 
-@interface KeyboardButtonManager : NSObject <ButtonViewControllerDelegate>
+
+typedef NS_ENUM(int, MESSAGE_BUTTON) {
+    BUTTON_MESSAGE_UPDATED
+};
+
+
+@interface KeyboardButtonManager : NSObject <ButtonViewControllerDelegate> {
+    KSMessenger *messenger;
+}
 
 - (id) initWithBaseView:(UIView *)baseView andSetting:(NSArray *)settings;
 - (KeysData)keysData;

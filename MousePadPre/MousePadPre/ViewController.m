@@ -31,18 +31,21 @@ BonjourConnectionController *bonConnectCont;
 KeyboardButtonManager *buttonManager;
 
 
-#define MOUSEVENT_BEGAN (0)
-#define MOUSEVENT_MOVED (1)
-#define MOUSEVENT_END   (2)
+typedef NS_ENUM(int, INPUT_EVENT) {
+    MOUSE_EVENT_BEGAN,
+    MOUSE_EVENT_MOVED,
+    MOUSE_EVENT_END,
+    BUTTON_EVENT_UPDATED
+};
 
 
 - (void)viewDidLoad {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/08 22:28:47" withLimitSec:100000 withComment:@"倍率入れたい。ピクセルマッチさせない的な。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/12 14:26:57" withLimitSec:100000 withComment:@"倍率入れたい。ピクセルマッチさせない的な。"];
     [super viewDidLoad];
     
     messenger = [[KSMessenger alloc]initWithBodyID:self withSelector:@selector(receiver:) withName:MESSENGER_MAINVIEWCONTROLLER];
     
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/08 22:28:51" withLimitSec:11000000 withComment:@"設定ファイルの事を考える、userPrefでいいはず"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/12 14:27:00" withLimitSec:11000000 withComment:@"設定ファイルの事を考える、userPrefでいいはず"];
     /**
      設定ファイルを読み込む
      存在しなければデフォルトを読む
@@ -50,16 +53,16 @@ KeyboardButtonManager *buttonManager;
     NSDictionary *defRightMouseButtonDict = @{
                                               @"identity":@"R",
                                               @"inputType":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
-                                              @"x":@200.0f,
-                                              @"y":@100.0f,
+                                              @"x":@300.0f,
+                                              @"y":@600.0f,
                                               @"title":@"R"
                                               };
     
     NSDictionary *defLeftMouseButtonDict = @{
                                              @"identity":@"L",
                                              @"inputType":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
-                                             @"x":@300.0f,
-                                             @"y":@100.0f,
+                                             @"x":@200.0f,
+                                             @"y":@600.0f,
                                              @"title":@"L"
                                              };
 
@@ -68,7 +71,7 @@ KeyboardButtonManager *buttonManager;
                                                @"identity":@"C",
                                                @"inputType":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
                                                @"x":@400.0f,
-                                               @"y":@100.0f,
+                                               @"y":@600.0f,
                                                @"title":@"C"
                                                };
 
@@ -76,7 +79,7 @@ KeyboardButtonManager *buttonManager;
                                        @"identity":@"K",
                                        @"inputType":[NSNumber numberWithInt:INPUT_TYPE_KEY],
                                        @"x":@100.0f,
-                                       @"y":@100.0f,
+                                       @"y":@600.0f,
                                        @"title":@"K"
                                        };
     
@@ -99,11 +102,14 @@ KeyboardButtonManager *buttonManager;
             break;
     }
     
-    
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 21:43:11" withLimitSec:100000 withComment:@"後回しのフェードビュー、最終的には操作可能になったら出す"];
 //    FadeViewController *fadeViewCont = [[FadeViewController alloc] initFadeViewWithBarseView:self.view.frame];
 //    [self.view addSubview:fadeViewCont.view];
 }
 
+- (IBAction)reconnect:(id)sender {
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/09 10:16:30" withLimitSec:1000000 withComment:@"接続に対して、チェックを行う。"];
+}
 
 /**
  いろんな箇所からのコントロールの受け取り
@@ -151,15 +157,31 @@ KeyboardButtonManager *buttonManager;
     }
     
     /*
-     bluetootuからの通知
+     bluetoothのコントローラからの通知
      */
     
     
     /*
      FadeViewからの通知
      */
+    
+    
+    
+    /*
+     ボタンコントローラからの通知
+     */
+    switch ([messenger execFrom:MESSENGER_KEYBOARDMANAGER viaNotification:notif]) {
+        case BUTTON_MESSAGE_UPDATED:
+            [self setMovePoint:currentViewMousePoint withMouseEventType:BUTTON_EVENT_UPDATED];
+            break;
+            
+        default:
+            break;
+    }
 }
 
+
+CGPoint currentViewMousePoint;
 
 /**
  マウス挙動
@@ -167,26 +189,26 @@ KeyboardButtonManager *buttonManager;
  */
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     for (UITouch *touch in touches) {
-        CGPoint p = [touch locationInView:self.view];
-        [self setMovePoint:p withMouseEventType:MOUSEVENT_BEGAN];
+        currentViewMousePoint = [touch locationInView:self.view];
+        [self setMovePoint:currentViewMousePoint withMouseEventType:MOUSE_EVENT_BEGAN];
         break;
     }
 }
 
 - (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     for (UITouch *touch in touches) {
-        CGPoint p = [touch locationInView:self.view];
+        currentViewMousePoint = [touch locationInView:self.view];
         
-        [self setMovePoint:p withMouseEventType:MOUSEVENT_MOVED];
+        [self setMovePoint:currentViewMousePoint withMouseEventType:MOUSE_EVENT_MOVED];
         break;
     }
 }
 
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     for (UITouch *touch in touches) {
-        CGPoint p = [touch locationInView:self.view];
+        currentViewMousePoint = [touch locationInView:self.view];
         
-        [self setMovePoint:p withMouseEventType:MOUSEVENT_END];
+        [self setMovePoint:currentViewMousePoint withMouseEventType:MOUSE_EVENT_END];
         break;
     }
 }
@@ -205,7 +227,7 @@ KeyboardButtonManager *buttonManager;
             break;
         }
         case CONNECTIONTYPE_BLUETOOTHLE:{
-            [TimeMine setTimeMineLocalizedFormat:@"2014/09/23 21:40:52" withLimitSec:0 withComment:@"bt未対応"];
+            [TimeMine setTimeMineLocalizedFormat:@"2014/09/23 21:40:52" withLimitSec:0 withComment:@"bt未対応、対応したい。"];
             break;
         }
             
@@ -214,9 +236,7 @@ KeyboardButtonManager *buttonManager;
             break;
         }
     }
-    
 }
-
 
 /**
  ボタンのマネージャからキー情報を取得する
@@ -225,9 +245,5 @@ KeyboardButtonManager *buttonManager;
     return [buttonManager keysData];
 }
 
-
-- (void) intervalKeyUpdate {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/04 22:42:29" withLimitSec:100000 withComment:@"setMovePointを定期的に実行して、キーの状態変化を通知する、、、とかかな、、まあ変化するまでは変化してない、って感じで良いんだと思うから出番が無いかな、、、"];
-}
 
 @end

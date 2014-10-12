@@ -10,6 +10,7 @@
 
 
 
+// 2014/10/12 14:13:16
 struct MousePadData {
     CGPoint mousePoint;
     int mouseEventType;
@@ -17,15 +18,10 @@ struct MousePadData {
     bool right;
     bool center;
     
-    Byte key0;
-    Byte key1;
-    Byte key2;
-    Byte key3;
-    Byte key4;
-    Byte key5;
-    Byte key6;
-    Byte key7;
+    Byte keySlots[8];
 };
+
+typedef struct MousePadData MousePadData;
 
 
 typedef NS_ENUM(int, BONJOUR_RECEIVER_STATE) {
