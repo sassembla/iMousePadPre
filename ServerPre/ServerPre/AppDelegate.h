@@ -10,13 +10,15 @@
 
 
 
-// 2014/10/12 14:13:16
+// 2014/10/12 17:59:57
 struct MousePadData {
     CGPoint mousePoint;
-    int mouseEventType;
-    bool left;
-    bool right;
-    bool center;
+    
+    Byte mouseEventType;
+    
+    Byte leftState;
+    Byte rightState;
+    Byte centerState;
     
     Byte keySlots[8];
 };

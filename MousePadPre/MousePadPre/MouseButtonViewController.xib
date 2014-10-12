@@ -34,7 +34,7 @@
         </view>
     </objects>
     <resources>
-        <image name="mouseBase" width="104" height="104"/>
-        <image name="mouseBaseOn" width="122" height="122"/>
+        <image name="mouseBase" width="108" height="108"/>
+        <image name="mouseBaseOn" width="108" height="108"/>
     </resources>
 </document>

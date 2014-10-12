@@ -132,8 +132,6 @@ CGPoint beforeInputPoint;
 - (void) execute:(NSData *)data {
     switch (state) {
         case BONJOUR_RECEIVER_ACCEPTED_IOS:{
-            
-            
             /*
              マウス入力とキー入力の解析と再現を行う。
              */
@@ -149,7 +147,7 @@ CGPoint beforeInputPoint;
             /*
              マウスのボタン入力
              */
-            [self mouseButtonStatusUpdate:emitPoint left:mousePadData.left right:mousePadData.right andCenter:mousePadData.center];
+            [self mouseButtonStatusUpdate:emitPoint left:mousePadData.leftState right:mousePadData.rightState andCenter:mousePadData.centerState];
             
             
             /*
@@ -166,12 +164,9 @@ CGPoint beforeInputPoint;
     }
 }
 
-// ローカルで保持するキーのbyte一覧 8
-char keySlots[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-
-
 /*
- キーのdownを実行する
+ キーのdown/upを実行する。
+ Byteに0が入っていれば、キーの状態を変更する。
  */
 - (void) keysStatusUpdate:(CGPoint)inputPoint
                  keySlots:(Byte [])keySlots {
@@ -192,46 +187,56 @@ char keySlots[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 /*
  マウスのdownを実行する 
- 状態を持ち、trueだったら離す、というのが必要になる。
+ 
  */
-bool leftIsDown;
-- (void) mouseButtonStatusUpdate:(CGPoint)inputPoint left:(bool)left right:(bool)right andCenter:(bool)center {
+- (void) mouseButtonStatusUpdate:(CGPoint)inputPoint left:(Byte)left right:(Byte)right andCenter:(Byte)center {
     /*
      マウスの 左/右/その他のボタン
     */
     
-    if (left) {
-        CGEventRef downLeft = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseDown, inputPoint, kCGMouseButtonLeft);
-        CGEventPost(kCGHIDEventTap, downLeft);
-        CFRelease(downLeft);
-        
-        leftIsDown = true;
-    } else {
-        if (leftIsDown) {
-            CGEventRef upLeft = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseUp, inputPoint, kCGMouseButtonLeft);
-            CGEventPost(kCGHIDEventTap, upLeft);
-            CFRelease(upLeft);
-            
-            leftIsDown =false;
-        }
-    }
+//    if (left == STATE_DOWN) {
+//        CGEventRef downLeft = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseDown, inputPoint, kCGMouseButtonLeft);
+//        CGEventPost(kCGHIDEventTap, downLeft);
+//        CFRelease(downLeft);
+//        
+//        NSLog(@"押しっぱなしってどうなるんだろうね。→移動できなくなる。なるほどなー。");
+//        
+//        CGEventRef upLeft = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseUp, inputPoint, kCGMouseButtonLeft);
+//        CGEventPost(kCGHIDEventTap, upLeft);
+//        CFRelease(upLeft);
+//    }
+
     
+//    else {
+//        CGEventRef upLeft = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseUp, inputPoint, kCGMouseButtonLeft);
+//        CGEventPost(kCGHIDEventTap, upLeft);
+//        CFRelease(upLeft);
+//    }
+//    
     [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 23:12:28" withLimitSec:100000 withComment:@"マウスはカーソルに付随すべき、みたいなアイデアのほうがよさげ。両手使わないでいいし。"];
     [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 23:12:32" withLimitSec:10000 withComment:@"ボタンの入力時のみでの通信をつくるべき。"];
     [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 23:12:36" withLimitSec:10000 withComment:@"ドラッグイベントはそれはそれで存在するような気がする。イベントとしての発行を同時にやっちゃうのがいいのか、それともダウンのままで勝手にインターバルが発生するのか、、。受け側で分解するのがいいのか、それとも。"];
     
-    if (right) {
-        CGEventRef downRight = CGEventCreateMouseEvent(NULL, kCGEventRightMouseDown, inputPoint, kCGMouseButtonRight);
-        CGEventPost(kCGHIDEventTap, downRight);
-        CFRelease(downRight);
-    }
+//    if (right) {
+//        CGEventRef downRight = CGEventCreateMouseEvent(NULL, kCGEventRightMouseDown, inputPoint, kCGMouseButtonRight);
+//        CGEventPost(kCGHIDEventTap, downRight);
+//        CFRelease(downRight);
+//    }
+    
+    
+//    // Left button down
+//    CGEventRef leftDown = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseDown, CGPointMake(p.x, p.y), kCGMouseButtonLeft);
+//    CGEventPost(kCGHIDEventTap, leftDown);
+//    
+//    // Left button up
+//    CGEventRef leftUp = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseUp, CGPointMake(p.x, p.y), kCGMouseButtonLeft);
+//    CGEventPost(kCGHIDEventTap, leftUp);
 
 //    if (center) {
 //        CGEventRef downCenter = CGEventCreateMouseEvent(NULL, kCGEvent, inputPoint, kCGMouseButtonCenter);
 //        CGEventPost(kCGHIDEventTap, downCenter);
 //        CFRelease(downCenter);
 //    }
-    
     
 //    CGEventRef keyA = CGEventCreateKeyboardEvent (NULL, (CGKeyCode)52, true);
 //    CGEventPost(kCGEventKeyDown, keyA);
