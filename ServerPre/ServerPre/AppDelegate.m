@@ -27,9 +27,20 @@
 #define BONJOUR_NAME    (@"hello!")
 
 
-#define MOUSEVENT_BEGAN (0)
-#define MOUSEVENT_MOVED (1)
-#define MOUSEVENT_END   (2)
+typedef NS_ENUM(Byte, INPUT_EVENT) {
+    MOUSE_EVENT_BEGAN,
+    MOUSE_EVENT_MOVED,
+    MOUSE_EVENT_END,
+    BUTTON_EVENT_UPDATED
+};
+
+typedef NS_ENUM(Byte, MOUSE_BUTTON_EVENT) {
+    MOUSE_BUTTON_DOWN,
+    MOUSE_BUTTON_DRAG,
+    MOUSE_BUTTON_UP,
+};
+
+
 
 
 NSSocketPort *bonjourSocket;
@@ -147,7 +158,7 @@ CGPoint beforeInputPoint;
             /*
              マウスのボタン入力
              */
-            [self mouseButtonStatusUpdate:emitPoint left:mousePadData.leftState right:mousePadData.rightState andCenter:mousePadData.centerState];
+            [self mouseButtonStatusUpdate:emitPoint left:mousePadData.left right:mousePadData.right andCenter:mousePadData.center];
             
             
             /*
@@ -172,7 +183,7 @@ CGPoint beforeInputPoint;
                  keySlots:(Byte [])keySlots {
     for (int i = 0; i < 8; i++) {
         Byte a = keySlots[i];
-        NSLog(@"a %d", a);
+//        NSLog(@"a %d", a);
     }
 //    NSLog(@"key0 %d", key0);
 //    NSLog(@"key1 %d", key1);
@@ -193,29 +204,51 @@ CGPoint beforeInputPoint;
     /*
      マウスの 左/右/その他のボタン
     */
+    switch (left) {
+        case MOUSE_BUTTON_DOWN:{
+            CGEventRef downLeft = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventLeftMouseDown, inputPoint, kCGMouseButtonLeft);
+            CGEventPost(kCGHIDEventTap, downLeft);
+            CFRelease(downLeft);
+            break;
+        }
+            
+        case MOUSE_BUTTON_DRAG:{
+            CGEventRef event = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventLeftMouseDragged, inputPoint, kCGMouseButtonLeft);
+            CGEventPost(kCGHIDEventTap, event);
+            CFRelease(event);
+            break;
+        }
+            
+        case MOUSE_BUTTON_UP:{
+            CGEventRef upLeft = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventLeftMouseUp, inputPoint, kCGMouseButtonLeft);
+            CGEventPost(kCGHIDEventTap, upLeft);
+            CFRelease(upLeft);
+            break;
+        }
+            
+        default:
+            break;
+    }
     
-//    if (left == STATE_DOWN) {
-//        CGEventRef downLeft = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseDown, inputPoint, kCGMouseButtonLeft);
-//        CGEventPost(kCGHIDEventTap, downLeft);
-//        CFRelease(downLeft);
-//        
-//        NSLog(@"押しっぱなしってどうなるんだろうね。→移動できなくなる。なるほどなー。");
-//        
-//        CGEventRef upLeft = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseUp, inputPoint, kCGMouseButtonLeft);
-//        CGEventPost(kCGHIDEventTap, upLeft);
-//        CFRelease(upLeft);
-//    }
-
-    
-//    else {
-//        CGEventRef upLeft = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseUp, inputPoint, kCGMouseButtonLeft);
-//        CGEventPost(kCGHIDEventTap, upLeft);
-//        CFRelease(upLeft);
-//    }
+//    void doubleClick(int clickCount) {
+//    int clickCount = 2;
+//CGEventRef theEvent = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseDown, inputPoint, kCGMouseButtonLeft);
+//CGEventSetIntegerValueField(theEvent, kCGMouseEventClickState, clickCount);
+//CGEventPost(kCGHIDEventTap, theEvent);
 //    
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 23:12:28" withLimitSec:100000 withComment:@"マウスはカーソルに付随すべき、みたいなアイデアのほうがよさげ。両手使わないでいいし。"];
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 23:12:32" withLimitSec:10000 withComment:@"ボタンの入力時のみでの通信をつくるべき。"];
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 23:12:36" withLimitSec:10000 withComment:@"ドラッグイベントはそれはそれで存在するような気がする。イベントとしての発行を同時にやっちゃうのがいいのか、それともダウンのままで勝手にインターバルが発生するのか、、。受け側で分解するのがいいのか、それとも。"];
+//CGEventSetType(theEvent, kCGEventLeftMouseUp);
+//CGEventPost(kCGHIDEventTap, theEvent);
+//    
+//CGEventSetType(theEvent, kCGEventLeftMouseDown);
+//CGEventPost(kCGHIDEventTap, theEvent);
+//    
+//CGEventSetType(theEvent, kCGEventLeftMouseUp);
+//CGEventPost(kCGHIDEventTap, theEvent);
+//    
+//CFRelease(theEvent);
+//    }
+    
+    
     
 //    if (right) {
 //        CGEventRef downRight = CGEventCreateMouseEvent(NULL, kCGEventRightMouseDown, inputPoint, kCGMouseButtonRight);
@@ -269,10 +302,10 @@ CGPoint beforeInputPoint;
 - (CGPoint) mouseUpdate:(CGPoint)inputPoint withType:(int)mouseEventType {
     
     switch (mouseEventType) {
-        case MOUSEVENT_BEGAN:{
+        case MOUSE_EVENT_BEGAN:{
             break;
         }
-        case MOUSEVENT_MOVED:
+        case MOUSE_EVENT_MOVED:
             /*
              差分の反映
              */

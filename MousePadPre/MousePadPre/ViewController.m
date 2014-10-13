@@ -9,6 +9,8 @@
 #import "ViewController.h"
 #import "TimeMine.h"
 
+#import "MouseIndicatorViewController.h"
+
 #import "KeyboardButtonManager.h"
 #import "BonjourConnectionController.h"
 
@@ -28,10 +30,12 @@
 int connectionType = CONNECTIONTYPE_BONJOUR;
 BonjourConnectionController *bonConnectCont;
 
+MouseIndicatorViewController *mouseIndicateViewCont;
+
 KeyboardButtonManager *buttonManager;
 
 
-typedef NS_ENUM(int, INPUT_EVENT) {
+typedef NS_ENUM(Byte, INPUT_EVENT) {
     MOUSE_EVENT_BEGAN,
     MOUSE_EVENT_MOVED,
     MOUSE_EVENT_END,
@@ -39,42 +43,35 @@ typedef NS_ENUM(int, INPUT_EVENT) {
 };
 
 
+typedef NS_ENUM(Byte, MOUSE_BUTTON_EVENT) {
+    MOUSE_BUTTON_DOWN,
+    MOUSE_BUTTON_DRAG,
+    MOUSE_BUTTON_UP,
+};
+
+
+struct MouseButtonsData {
+    Byte left;
+    Byte right;
+    Byte center;
+};
+
+typedef struct MouseButtonsData MouseButtonsData;
+
+
 - (void)viewDidLoad {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/12 14:26:57" withLimitSec:100000 withComment:@"倍率入れたい。ピクセルマッチさせない的な。"];
+    mouseIndicateViewCont = [[MouseIndicatorViewController alloc] initWithBaseview:self.view];
+    
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/14 14:26:57" withLimitSec:100000 withComment:@"倍率入れたい。ピクセルマッチさせない的な。"];
     [super viewDidLoad];
     
     messenger = [[KSMessenger alloc]initWithBodyID:self withSelector:@selector(receiver:) withName:MESSENGER_MAINVIEWCONTROLLER];
     
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/12 14:27:00" withLimitSec:11000000 withComment:@"設定ファイルの事を考える、userPrefでいいはず"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/14 14:27:00" withLimitSec:11000000 withComment:@"設定ファイルの事を考える、userPrefでいいはず"];
     /**
      設定ファイルを読み込む
      存在しなければデフォルトを読む
      */
-    NSDictionary *defRightMouseButtonDict = @{
-                                              @"identity":@"R",
-                                              @"inputType":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
-                                              @"x":@300.0f,
-                                              @"y":@600.0f,
-                                              @"title":@"R"
-                                              };
-    
-    NSDictionary *defLeftMouseButtonDict = @{
-                                             @"identity":@"L",
-                                             @"inputType":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
-                                             @"x":@200.0f,
-                                             @"y":@600.0f,
-                                             @"title":@"L"
-                                             };
-
-    
-    NSDictionary *defCenterMouseButtonDict = @{
-                                               @"identity":@"C",
-                                               @"inputType":[NSNumber numberWithInt:INPUT_TYPE_MOUSEBUTTON],
-                                               @"x":@400.0f,
-                                               @"y":@600.0f,
-                                               @"title":@"C"
-                                               };
-
     NSDictionary *defKeyButtonDict = @{
                                        @"identity":@"K",
                                        @"inputType":[NSNumber numberWithInt:INPUT_TYPE_KEY],
@@ -83,7 +80,7 @@ typedef NS_ENUM(int, INPUT_EVENT) {
                                        @"title":@"K"
                                        };
     
-    NSArray *settings = @[defRightMouseButtonDict, defLeftMouseButtonDict, defCenterMouseButtonDict, defKeyButtonDict];
+    NSArray *settings = @[defKeyButtonDict];
     
     buttonManager = [[KeyboardButtonManager alloc]initWithBaseView:self.view andSetting:settings];
     
@@ -185,42 +182,163 @@ CGPoint currentViewMousePoint;
 
 /**
  マウス挙動
- 1つ目のもののみを取り出す
+ 
+ 一点目のタッチはポイント専用、
+ その後のタッチはポイントからの位置関係でクリックイベントを発生させる。
+ */
+
+// 最初のタッチをマウスポインターとして保持
+UITouch *firstTouch;
+
+UITouch *leftButtonTouch;
+UITouch *rightButtonTouch;
+UITouch *centerButtonTouch;
+
+
+MouseButtonsData mouseButtonsData;
+
+
+/**
+ フレーム単位でまとめて一回ずつ、タッチ→マウスイベントへと変換したイベントを発行する
  */
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    
+    /*
+     view全体のタッチを取得し、一つ目のものであれば、マウスポイント用のタッチとして取得する。
+     */
+    NSSet *currentViewTouches = [event touchesForView:self.view];
+    if ([currentViewTouches count] == 1) firstTouch = [touches allObjects][0];
+    
     for (UITouch *touch in touches) {
-        currentViewMousePoint = [touch locationInView:self.view];
-        [self setMovePoint:currentViewMousePoint withMouseEventType:MOUSE_EVENT_BEGAN];
-        break;
+        if (touch == firstTouch) {
+            currentViewMousePoint = [touch locationInView:self.view];
+            [mouseIndicateViewCont turnOn];
+        } else {
+            [self detectMouseTouchBegan:touch];
+        }
     }
+    
+    [self setMovePoint:currentViewMousePoint withMouseEventType:MOUSE_EVENT_BEGAN];
 }
 
 - (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
+    
+    /*
+     ポインターになる一点のみをマウスの動きとして送信する。
+     */
     for (UITouch *touch in touches) {
-        currentViewMousePoint = [touch locationInView:self.view];
-        
-        [self setMovePoint:currentViewMousePoint withMouseEventType:MOUSE_EVENT_MOVED];
-        break;
+        if (touch == firstTouch) {
+            currentViewMousePoint = [touch locationInView:self.view];
+        }
     }
+    
+    /*
+     このタイミングでonになっているマウスボタンは、drag状態として扱う。
+     */
+    [self detectMouseTouchDrag:event];
+    
+    [self setMovePoint:currentViewMousePoint withMouseEventType:MOUSE_EVENT_MOVED];
 }
 
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     for (UITouch *touch in touches) {
-        currentViewMousePoint = [touch locationInView:self.view];
+        if (touch == firstTouch) {
+            currentViewMousePoint = [touch locationInView:self.view];
+            [mouseIndicateViewCont turnOff];
+        } else {
+            [self detectMouseTouchEnded:touch];
+        }
+    }
+    
+    [self setMovePoint:currentViewMousePoint withMouseEventType:MOUSE_EVENT_END];
+}
+
+
+
+/**
+ firstTouchとの位置関係から、マウスのボタンとして動作を行う。
+ */
+- (void) detectMouseTouchBegan:(UITouch *)touch {
+    CGPoint firstTouchPoint = [firstTouch locationInView:self.view];
+    CGPoint currentTouchPoint = [touch locationInView:self.view];
+    
+    /*
+     位置の組み合わせでマウスのボタン挙動を作り出す。
+     */
+    if (firstTouchPoint.y < currentTouchPoint.y) {
+        if (currentTouchPoint.x < firstTouchPoint.x) {
+            leftButtonTouch = touch;
+            [mouseIndicateViewCont turnLeft:YES];
+            
+            mouseButtonsData.left = MOUSE_BUTTON_DOWN;
+        } else {
+            rightButtonTouch = touch;
+            [mouseIndicateViewCont turnRight:YES];
+            
+            mouseButtonsData.right = MOUSE_BUTTON_DOWN;
+        }
+    } else {
+        centerButtonTouch = touch;
+        [mouseIndicateViewCont turnCenter:YES];
         
-        [self setMovePoint:currentViewMousePoint withMouseEventType:MOUSE_EVENT_END];
-        break;
+        mouseButtonsData.center = MOUSE_BUTTON_DOWN;
+    }
+}
+
+- (void) detectMouseTouchDrag:(UIEvent *)event {
+    NSSet *currentViewTouches = [event touchesForView:self.view];
+
+    for (UITouch *touch in currentViewTouches) {
+        if (touch == leftButtonTouch) mouseButtonsData.left = MOUSE_BUTTON_DRAG;
+        if (touch == rightButtonTouch) mouseButtonsData.right = MOUSE_BUTTON_DRAG;
+        if (touch == centerButtonTouch) mouseButtonsData.center = MOUSE_BUTTON_DRAG;
+    }
+}
+
+- (void) detectMouseTouchEnded:(UITouch *)touch {
+    if (touch == leftButtonTouch) {
+        [mouseIndicateViewCont turnLeft:NO];
+        leftButtonTouch = nil;
+        
+        mouseButtonsData.left = MOUSE_BUTTON_UP;
+    }
+    
+    if (touch == rightButtonTouch) {
+        [mouseIndicateViewCont turnRight:NO];
+        rightButtonTouch = nil;
+        
+        mouseButtonsData.right = MOUSE_BUTTON_UP;
+    }
+    
+    if (touch == centerButtonTouch) {
+        [mouseIndicateViewCont turnCenter:NO];
+        centerButtonTouch = nil;
+        
+        mouseButtonsData.center = MOUSE_BUTTON_UP;
     }
 }
 
 
 
 /**
- キーの押下状態と、カーソルの移動状態を通知する。
+ キーの押下状態と、マウスポインターの移動状態を通知する。
  */
-- (void) setMovePoint:(CGPoint)point withMouseEventType:(int)type {
-    KeysData keysData = [buttonManager keysData];
+- (void) setMovePoint:(CGPoint)point withMouseEventType:(Byte)type {
+    /*
+     カーソル移動
+     */
+    mouseIndicateViewCont.view.center = point;
 
+    
+    KeysData keysData = [buttonManager keysData];
+    
+    /*
+     キーのデータに対して、マウスのデータを更新
+     */
+    keysData.left = mouseButtonsData.left;
+    keysData.right = mouseButtonsData.right;
+    keysData.center = mouseButtonsData.center;
+    
     switch (connectionType) {
         case CONNECTIONTYPE_BONJOUR:{
             [bonConnectCont sendPoint:point withType:type andKeysData:keysData];

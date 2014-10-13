@@ -7,9 +7,10 @@
 //
 
 struct KeysData {
-    bool left;
-    bool right;
-    bool center;
+    Byte left;
+    Byte right;
+    Byte center;
+    
     Byte keySlots[8];
 };
 

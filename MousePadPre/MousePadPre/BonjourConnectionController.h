@@ -23,6 +23,6 @@ typedef NS_ENUM(int, MESSAGE_BONJOUR) {
     KSMessenger *messenger;
 }
 
-- (void) sendPoint:(CGPoint)point withType:(int)type andKeysData:(KeysData)keysData;
+- (void) sendPoint:(CGPoint)point withType:(Byte)type andKeysData:(KeysData)KeysData;
 
 @end

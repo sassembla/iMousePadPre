@@ -258,13 +258,14 @@ NSOutputStream *bonjourOutputStream;
 }
 
 
-// 2014/10/12 14:13:16
+// 2014/10/13 16:54:55
 struct MousePadData {
     CGPoint mousePoint;
-    int mouseEventType;
-    bool left;
-    bool right;
-    bool center;
+    Byte mouseEventType;
+    
+    Byte left;
+    Byte right;
+    Byte center;
     
     Byte keySlots[8];
 };
@@ -274,7 +275,7 @@ typedef struct MousePadData MousePadData;
 /**
  ポイントの情報を送付する
  */
-- (void) sendPoint:(CGPoint)point withType:(int)type andKeysData:(KeysData)KeysData {
+- (void) sendPoint:(CGPoint)point withType:(Byte)type andKeysData:(KeysData)KeysData {
     if (![self isBonjourConnected]) return;
     if (bonjourState != STATE_BONJOUR_CONNECTED) return;
     

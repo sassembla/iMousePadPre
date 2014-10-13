@@ -28,10 +28,8 @@
 		33657F4819E105F00074D782 /* ButtonDeleteButtonViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 33657F4519E105F00074D782 /* ButtonDeleteButtonViewController.m */; };
 		33657F4919E105F00074D782 /* ButtonDeleteButtonViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33657F4619E105F00074D782 /* ButtonDeleteButtonViewController.xib */; };
 		33657F4A19E105F00074D782 /* ButtonDeleteButtonViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33657F4619E105F00074D782 /* ButtonDeleteButtonViewController.xib */; };
-		33657F4F19E108260074D782 /* MouseButtonViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 33657F4D19E108260074D782 /* MouseButtonViewController.m */; };
-		33657F5019E108260074D782 /* MouseButtonViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 33657F4D19E108260074D782 /* MouseButtonViewController.m */; };
-		33657F5119E108260074D782 /* MouseButtonViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33657F4E19E108260074D782 /* MouseButtonViewController.xib */; };
-		33657F5219E108260074D782 /* MouseButtonViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33657F4E19E108260074D782 /* MouseButtonViewController.xib */; };
+		33FFB50A19EAEB4D006F76AE /* MouseIndicatorViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 33FFB50819EAEB4D006F76AE /* MouseIndicatorViewController.m */; };
+		33FFB50B19EAEB4D006F76AE /* MouseIndicatorViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33FFB50919EAEB4D006F76AE /* MouseIndicatorViewController.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -77,10 +75,10 @@
 		33657F4419E105F00074D782 /* ButtonDeleteButtonViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ButtonDeleteButtonViewController.h; sourceTree = "<group>"; };
 		33657F4519E105F00074D782 /* ButtonDeleteButtonViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ButtonDeleteButtonViewController.m; sourceTree = "<group>"; };
 		33657F4619E105F00074D782 /* ButtonDeleteButtonViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ButtonDeleteButtonViewController.xib; sourceTree = "<group>"; };
-		33657F4C19E108260074D782 /* MouseButtonViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MouseButtonViewController.h; sourceTree = "<group>"; };
-		33657F4D19E108260074D782 /* MouseButtonViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MouseButtonViewController.m; sourceTree = "<group>"; };
-		33657F4E19E108260074D782 /* MouseButtonViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MouseButtonViewController.xib; sourceTree = "<group>"; };
 		337379CC19E3B304003537BC /* KeysData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KeysData.h; sourceTree = "<group>"; };
+		33FFB50719EAEB4D006F76AE /* MouseIndicatorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MouseIndicatorViewController.h; sourceTree = "<group>"; };
+		33FFB50819EAEB4D006F76AE /* MouseIndicatorViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MouseIndicatorViewController.m; sourceTree = "<group>"; };
+		33FFB50919EAEB4D006F76AE /* MouseIndicatorViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MouseIndicatorViewController.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -124,6 +122,7 @@
 		330A2A1119CABBE300441A2A /* MousePadPre */ = {
 			isa = PBXGroup;
 			children = (
+				33FFB50619EAEB35006F76AE /* MouseIndicator */,
 				337379CC19E3B304003537BC /* KeysData.h */,
 				332E7BCA19E18155006884E6 /* ButtonViewControllerDelegate.h */,
 				330A2A1619CABBE300441A2A /* AppDelegate.h */,
@@ -137,7 +136,6 @@
 				335C359019D17673004CD23C /* BonjourConnection */,
 				335C358619D16C86004CD23C /* KeyboardButtonManager.h */,
 				335C358719D16C86004CD23C /* KeyboardButtonManager.m */,
-				33657F4219E105C80074D782 /* MouseButton */,
 				33657F4319E105D20074D782 /* KeyButton */,
 				33657F4B19E105F60074D782 /* ButtonDeleteButton */,
 				332E7BD519E19B96006884E6 /* Messengers.h */,
@@ -209,16 +207,6 @@
 			name = BonjourConnection;
 			sourceTree = "<group>";
 		};
-		33657F4219E105C80074D782 /* MouseButton */ = {
-			isa = PBXGroup;
-			children = (
-				33657F4C19E108260074D782 /* MouseButtonViewController.h */,
-				33657F4D19E108260074D782 /* MouseButtonViewController.m */,
-				33657F4E19E108260074D782 /* MouseButtonViewController.xib */,
-			);
-			name = MouseButton;
-			sourceTree = "<group>";
-		};
 		33657F4319E105D20074D782 /* KeyButton */ = {
 			isa = PBXGroup;
 			children = (
@@ -237,6 +225,16 @@
 				33657F4619E105F00074D782 /* ButtonDeleteButtonViewController.xib */,
 			);
 			name = ButtonDeleteButton;
+			sourceTree = "<group>";
+		};
+		33FFB50619EAEB35006F76AE /* MouseIndicator */ = {
+			isa = PBXGroup;
+			children = (
+				33FFB50719EAEB4D006F76AE /* MouseIndicatorViewController.h */,
+				33FFB50819EAEB4D006F76AE /* MouseIndicatorViewController.m */,
+				33FFB50919EAEB4D006F76AE /* MouseIndicatorViewController.xib */,
+			);
+			name = MouseIndicator;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -322,7 +320,7 @@
 			files = (
 				33657F3519E0F0F90074D782 /* KeyButtonViewController.xib in Resources */,
 				33657F4919E105F00074D782 /* ButtonDeleteButtonViewController.xib in Resources */,
-				33657F5119E108260074D782 /* MouseButtonViewController.xib in Resources */,
+				33FFB50B19EAEB4D006F76AE /* MouseIndicatorViewController.xib in Resources */,
 				330A2A1E19CABBE300441A2A /* Main.storyboard in Resources */,
 				330A2A2319CABBE300441A2A /* LaunchScreen.xib in Resources */,
 				330A2A2019CABBE300441A2A /* Images.xcassets in Resources */,
@@ -336,7 +334,6 @@
 			files = (
 				33657F4A19E105F00074D782 /* ButtonDeleteButtonViewController.xib in Resources */,
 				33657F3619E0F0F90074D782 /* KeyButtonViewController.xib in Resources */,
-				33657F5219E108260074D782 /* MouseButtonViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -353,9 +350,9 @@
 				332E7BCD19E194D3006884E6 /* KSMessenger.m in Sources */,
 				335C358419D163D5004CD23C /* TimeMine.m in Sources */,
 				330A2A1819CABBE300441A2A /* AppDelegate.m in Sources */,
+				33FFB50A19EAEB4D006F76AE /* MouseIndicatorViewController.m in Sources */,
 				33657F4719E105F00074D782 /* ButtonDeleteButtonViewController.m in Sources */,
 				33657F3319E0F0F90074D782 /* KeyButtonViewController.m in Sources */,
-				33657F4F19E108260074D782 /* MouseButtonViewController.m in Sources */,
 				332E7BD919E19D44006884E6 /* FadeViewController.m in Sources */,
 				330A2A1519CABBE300441A2A /* main.m in Sources */,
 			);
@@ -368,7 +365,6 @@
 				33657F3419E0F0F90074D782 /* KeyButtonViewController.m in Sources */,
 				330A2A2F19CABBE300441A2A /* MousePadPreTests.m in Sources */,
 				33657F4819E105F00074D782 /* ButtonDeleteButtonViewController.m in Sources */,
-				33657F5019E108260074D782 /* MouseButtonViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

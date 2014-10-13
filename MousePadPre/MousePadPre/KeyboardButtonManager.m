@@ -10,7 +10,6 @@
 #import "KeyboardButtonManager.h"
 #import "TimeMine.h"
 
-#import "MouseButtonViewController.h"
 #import "KeyButtonViewController.h"
 
 #import "Messengers.h"
@@ -43,27 +42,6 @@ KeysData currentKeysData;
             
             // set layout.
             switch (inputType) {
-                case INPUT_TYPE_MOUSEBUTTON:{
-                    
-                    
-                    MouseButtonViewController *mouseButtonViewCont = [[MouseButtonViewController alloc] initWithIndex:[NSNumber numberWithInt:buttonIndex] andTitle:title];
-                    
-                    {
-                        UIView *buttonView = [mouseButtonViewCont view];
-                        [buttonView setFrame:buttonFrame];
-                        [baseView addSubview:[mouseButtonViewCont view]];
-                    }
-                    
-                    mouseButtonViewCont.delegate = self;
-                    
-                    buttonDict[[NSNumber numberWithInt:buttonIndex]] = @{
-                                                                         @"inputType":buttonInfoDict[@"inputType"],
-                                                                         @"identity":buttonInfoDict[@"identity"],
-                                                                         @"controller":mouseButtonViewCont
-                                                                         };
-                    
-                    break;
-                }
                 case INPUT_TYPE_KEY:{
                     KeyButtonViewController *keyButtonViewCont = [[KeyButtonViewController alloc] initWithIndex:[NSNumber numberWithInt:buttonIndex] andTitle:title];
                     

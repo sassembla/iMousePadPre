@@ -10,15 +10,14 @@
 
 
 
-// 2014/10/12 17:59:57
+// 2014/10/13 16:54:55
 struct MousePadData {
     CGPoint mousePoint;
-    
     Byte mouseEventType;
     
-    Byte leftState;
-    Byte rightState;
-    Byte centerState;
+    Byte left;
+    Byte right;
+    Byte center;
     
     Byte keySlots[8];
 };
@@ -38,11 +37,5 @@ typedef NS_ENUM(int, BONJOUR_RECEIVER_STATE) {
 - (NSWindow *)window;
 - (void) setState:(int)nextState;
 - (void) execute:(NSData *)data;
-
-
-- (bool) isRightClicking;
-- (bool) isLeftClicking;
-- (bool) isCenterClicking;
-
 @end
 
