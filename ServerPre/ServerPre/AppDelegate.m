@@ -34,10 +34,13 @@ typedef NS_ENUM(Byte, INPUT_EVENT) {
     BUTTON_EVENT_UPDATED
 };
 
-typedef NS_ENUM(Byte, MOUSE_BUTTON_EVENT) {
+typedef NS_ENUM(Byte, MOUSE_INPUT_EVENT) {
     MOUSE_BUTTON_DOWN,
     MOUSE_BUTTON_DRAG,
     MOUSE_BUTTON_UP,
+    MOUSE_DOUBLE_CLICK,
+    MOUSE_WHEEL_UP,
+    MOUSE_WHEEL_DOWN
 };
 
 
@@ -206,26 +209,102 @@ CGPoint beforeInputPoint;
     */
     switch (left) {
         case MOUSE_BUTTON_DOWN:{
-            CGEventRef downLeft = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventLeftMouseDown, inputPoint, kCGMouseButtonLeft);
-            CGEventPost(kCGHIDEventTap, downLeft);
-            CFRelease(downLeft);
+            CGEventRef down = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventLeftMouseDown, inputPoint, kCGMouseButtonLeft);
+            CGEventPost(kCGHIDEventTap, down);
+            CFRelease(down);
             break;
         }
             
         case MOUSE_BUTTON_DRAG:{
-            CGEventRef event = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventLeftMouseDragged, inputPoint, kCGMouseButtonLeft);
-            CGEventPost(kCGHIDEventTap, event);
-            CFRelease(event);
+            CGEventRef drag = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventLeftMouseDragged, inputPoint, kCGMouseButtonLeft);
+            CGEventPost(kCGHIDEventTap, drag);
+            CFRelease(drag);
             break;
         }
             
         case MOUSE_BUTTON_UP:{
-            CGEventRef upLeft = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventLeftMouseUp, inputPoint, kCGMouseButtonLeft);
-            CGEventPost(kCGHIDEventTap, upLeft);
-            CFRelease(upLeft);
+            CGEventRef up = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventLeftMouseUp, inputPoint, kCGMouseButtonLeft);
+            CGEventPost(kCGHIDEventTap, up);
+            CFRelease(up);
             break;
         }
             
+        case MOUSE_DOUBLE_CLICK:{
+            break;
+        }
+            
+        default:
+            break;
+    }
+    
+    switch (right) {
+        case MOUSE_BUTTON_DOWN:{
+            CGEventRef down = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventRightMouseDown, inputPoint, kCGMouseButtonRight);
+            CGEventPost(kCGHIDEventTap, down);
+            CFRelease(down);
+            break;
+        }
+            
+        case MOUSE_BUTTON_DRAG:{
+            CGEventRef drag = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventRightMouseDragged, inputPoint, kCGMouseButtonRight);
+            CGEventPost(kCGHIDEventTap, drag);
+            CFRelease(drag);
+            break;
+        }
+            
+        case MOUSE_BUTTON_UP:{
+            CGEventRef up = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventRightMouseUp, inputPoint, kCGMouseButtonRight);
+            CGEventPost(kCGHIDEventTap, up);
+            CFRelease(up);
+            break;
+        }
+            
+        case MOUSE_DOUBLE_CLICK:{
+            break;
+        }
+            
+        default:
+            break;
+    }
+
+    /*
+     draggable wheel
+     up/down 以外に、increase/decreaseがある
+     */
+    switch (center) {
+        case MOUSE_BUTTON_DOWN:{
+            CGEventRef down = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventOtherMouseDown, inputPoint, kCGMouseButtonCenter);
+            CGEventPost(kCGHIDEventTap, down);
+            CFRelease(down);
+            break;
+        }
+            
+        case MOUSE_BUTTON_DRAG:{
+            CGEventRef drag = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventOtherMouseDragged, inputPoint, kCGMouseButtonCenter);
+            CGEventPost(kCGHIDEventTap, drag);
+            CFRelease(drag);
+            break;
+        }
+            
+        case MOUSE_BUTTON_UP:{
+            CGEventRef up = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventOtherMouseUp, inputPoint, kCGMouseButtonCenter);
+            CGEventPost(kCGHIDEventTap, up);
+            CFRelease(up);
+            break;
+        }
+            
+        case MOUSE_DOUBLE_CLICK:{
+            break;
+        }
+            
+        case MOUSE_WHEEL_UP:{
+            break;
+        }
+            
+        case MOUSE_WHEEL_DOWN:{
+            break;
+        }
+        
         default:
             break;
     }

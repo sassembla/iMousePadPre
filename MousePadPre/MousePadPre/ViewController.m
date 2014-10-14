@@ -43,10 +43,13 @@ typedef NS_ENUM(Byte, INPUT_EVENT) {
 };
 
 
-typedef NS_ENUM(Byte, MOUSE_BUTTON_EVENT) {
+typedef NS_ENUM(Byte, MOUSE_INPUT_EVENT) {
     MOUSE_BUTTON_DOWN,
     MOUSE_BUTTON_DRAG,
     MOUSE_BUTTON_UP,
+    MOUSE_DOUBLE_CLICK,
+    MOUSE_WHEEL_UP,
+    MOUSE_WHEEL_DOWN
 };
 
 
@@ -188,7 +191,7 @@ CGPoint currentViewMousePoint;
  */
 
 // 最初のタッチをマウスポインターとして保持
-UITouch *firstTouch;
+UITouch *pointerTouch;
 
 UITouch *leftButtonTouch;
 UITouch *rightButtonTouch;
@@ -202,20 +205,13 @@ MouseButtonsData mouseButtonsData;
  フレーム単位でまとめて一回ずつ、タッチ→マウスイベントへと変換したイベントを発行する
  */
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-    
-    /*
-     view全体のタッチを取得し、一つ目のものであれば、マウスポイント用のタッチとして取得する。
-     */
-    NSSet *currentViewTouches = [event touchesForView:self.view];
-    if ([currentViewTouches count] == 1) firstTouch = [touches allObjects][0];
+    [self detectMousePointerTouch:event withBeganTouches:touches];
     
     for (UITouch *touch in touches) {
-        if (touch == firstTouch) {
-            currentViewMousePoint = [touch locationInView:self.view];
-            [mouseIndicateViewCont turnOn];
-        } else {
-            [self detectMouseTouchBegan:touch];
-        }
+        if (touch == pointerTouch) continue;
+        
+        // firstTouch以外は位置でマウスクリックとして判定
+        [self detectMouseTouchBegan:touch];
     }
     
     [self setMovePoint:currentViewMousePoint withMouseEventType:MOUSE_EVENT_BEGAN];
@@ -227,7 +223,7 @@ MouseButtonsData mouseButtonsData;
      ポインターになる一点のみをマウスの動きとして送信する。
      */
     for (UITouch *touch in touches) {
-        if (touch == firstTouch) {
+        if (touch == pointerTouch) {
             currentViewMousePoint = [touch locationInView:self.view];
         }
     }
@@ -242,9 +238,11 @@ MouseButtonsData mouseButtonsData;
 
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     for (UITouch *touch in touches) {
-        if (touch == firstTouch) {
+        if (touch == pointerTouch) {
             currentViewMousePoint = [touch locationInView:self.view];
             [mouseIndicateViewCont turnOff];
+            
+            pointerTouch = nil;
         } else {
             [self detectMouseTouchEnded:touch];
         }
@@ -254,12 +252,47 @@ MouseButtonsData mouseButtonsData;
 }
 
 
+/**
+ マウスポインタ用のタッチを取得する
+ */
+- (void) detectMousePointerTouch:(UIEvent *)event withBeganTouches:(NSSet *)touches {
+    
+    // まだ存在する場合、復帰
+    if (pointerTouch) return;
+    
+    
+    NSSet *currentViewTouches = [event touchesForView:self.view];
+    
+    // view全体のタッチを取得し、1つしかない場合、マウスポイント用のタッチとして取得する。
+    if ([currentViewTouches count] == 1) {
+        pointerTouch = [touches allObjects][0];
+        currentViewMousePoint = [pointerTouch locationInView:self.view];
+        [mouseIndicateViewCont turnOn];
+        return;
+    }
+    
+    // また2つ以上であっても、新規のものが既存のボタンに含まれていない場合、マウスポイント用のタッチとして取得する。
+    // 同時に２つ以上のタッチが追加された場合、先に発見された方をマウスとする。
+    // それ以降のタッチは無視する。
+    for (UITouch *touch in currentViewTouches) {
+        
+        if (touch == leftButtonTouch) continue;
+        if (touch == rightButtonTouch) continue;
+        if (touch == centerButtonTouch) continue;
+        
+        pointerTouch = touch;
+        currentViewMousePoint = [pointerTouch locationInView:self.view];
+        [mouseIndicateViewCont turnOn];
+        return;
+    }
+    
+}
 
 /**
  firstTouchとの位置関係から、マウスのボタンとして動作を行う。
  */
 - (void) detectMouseTouchBegan:(UITouch *)touch {
-    CGPoint firstTouchPoint = [firstTouch locationInView:self.view];
+    CGPoint firstTouchPoint = [pointerTouch locationInView:self.view];
     CGPoint currentTouchPoint = [touch locationInView:self.view];
     
     /*
@@ -296,6 +329,7 @@ MouseButtonsData mouseButtonsData;
 }
 
 - (void) detectMouseTouchEnded:(UITouch *)touch {
+    
     if (touch == leftButtonTouch) {
         [mouseIndicateViewCont turnLeft:NO];
         leftButtonTouch = nil;
