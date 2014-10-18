@@ -34,7 +34,9 @@ typedef NS_ENUM(Byte, INPUT_EVENT) {
     BUTTON_EVENT_UPDATED
 };
 
+// 2014/10/16 0:18:30
 typedef NS_ENUM(Byte, MOUSE_INPUT_EVENT) {
+    MOUSE_BUTTON_NONE,
     MOUSE_BUTTON_DOWN,
     MOUSE_BUTTON_DRAG,
     MOUSE_BUTTON_UP,
@@ -42,6 +44,7 @@ typedef NS_ENUM(Byte, MOUSE_INPUT_EVENT) {
     MOUSE_WHEEL_UP,
     MOUSE_WHEEL_DOWN
 };
+
 
 
 
@@ -66,6 +69,9 @@ NSMutableDictionary *screenInfo;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     NSLog(@"boot!");
+    
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/17 14:59:23" withLimitSec:100000 withComment:@"クライアントの切断をハンドルする"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/17 14:59:23" withLimitSec:100000 withComment:@"通信方法の追加をハンドルする"];
     
     /*
      画面サイズの取得
@@ -127,8 +133,6 @@ NSMutableDictionary *screenInfo;
     } else {
         [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_OPEN_BONJOUR withTitle:@"server failed" message:@"failed to locate bonjour network. reboot?"];
     }
-
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/09 10:19:29" withLimitSec:1000000 withComment:@"いつか、ハートビートが必要、キーもそれにのっけるか。60FPSだと高そう、、？    なので、弱くても良いと思うしどっちからいってもいい、、、わけじゃないか、Inputオンリーなほうが未来がある。"];
 }
 
 - (void) setState:(int)nextState {
@@ -384,14 +388,14 @@ CGPoint beforeInputPoint;
         case MOUSE_EVENT_BEGAN:{
             break;
         }
-        case MOUSE_EVENT_MOVED:
+        case MOUSE_EVENT_MOVED:{
             /*
              差分の反映
              */
             currentMousePoint.x += (inputPoint.x - beforeInputPoint.x);
             currentMousePoint.y += (inputPoint.y - beforeInputPoint.y);
             break;
-            
+        }
         default:
             break;
     }
@@ -424,7 +428,9 @@ CGPoint beforeInputPoint;
  Macの通知センターのデリゲート
  */
 // Sent to the delegate when a notification delivery date has arrived. At this time, the notification has either been presented to the user or the notification center has decided not to present it because your application was already frontmost.
-//- (void)userNotificationCenter:(NSUserNotificationCenter *)center didDeliverNotification:(NSUserNotification *)notification {}
+- (void)userNotificationCenter:(NSUserNotificationCenter *)center didDeliverNotification:(NSUserNotification *)notification {
+    NSLog(@"通知%@", notification);
+}
 
 
 // Sent to the delegate when a user clicks on a notification in the notification center. This would be a good time to take action in response to user interacting with a specific notification.
@@ -452,7 +458,10 @@ CGPoint beforeInputPoint;
 }
 
 // Sent to the delegate when the Notification Center has decided not to present your notification, for example when your application is front most. If you want the notification to be displayed anyway, return YES.
-//- (BOOL)userNotificationCenter:(NSUserNotificationCenter *)center shouldPresentNotification:(NSUserNotification *)notification {}
+//- (BOOL)userNotificationCenter:(NSUserNotificationCenter *)center shouldPresentNotification:(NSUserNotification *)notification {
+//    [TimeMine setTimeMineLocalizedFormat:@"2014/10/16 23:33:39" withLimitSec:0 withComment:@"shouldPresentNotification 通知系なのでいらないっぽい。"];
+//    return false;
+//}
 
 
 
@@ -461,7 +470,9 @@ CGPoint beforeInputPoint;
  */
 /* Sent to the NSNetService instance's delegate prior to advertising the service on the network. If for some reason the service cannot be published, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotPublish: method.
  */
-//- (void)netServiceWillPublish:(NSNetService *)sender {}
+- (void)netServiceWillPublish:(NSNetService *)sender {
+//    [TimeMine setTimeMineLocalizedFormat:@"2014/10/16 23:33:53" withLimitSec:0 withComment:@"netServiceWillPublish 単にこれから展開するよ、みたいなやつっぽい。"];
+}
 
 
 /* Sent to the NSNetService instance's delegate when the publication of the instance is complete and successful.
@@ -490,29 +501,37 @@ CGPoint beforeInputPoint;
 
 /* Sent to the NSNetService instance's delegate prior to resolving a service on the network. If for some reason the resolution cannot occur, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotResolve: method.
  */
-//- (void)netServiceWillResolve:(NSNetService *)sender {}
+- (void)netServiceWillResolve:(NSNetService *)sender {
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/16 23:33:11" withLimitSec:0 withComment:@"netServiceWillResolve"];
+}
 
 
 /* Sent to the NSNetService instance's delegate when one or more addresses have been resolved for an NSNetService instance. Some NSNetService methods will return different results before and after a successful resolution. An NSNetService instance may get resolved more than once; truly robust clients may wish to resolve again after an error, or to resolve more than once.
  */
-//- (void)netServiceDidResolveAddress:(NSNetService *)sender {}
+- (void)netServiceDidResolveAddress:(NSNetService *)sender {
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/16 23:32:59" withLimitSec:0 withComment:@"netServiceDidResolveAddress"];
+}
 
 
 /* Sent to the NSNetService instance's delegate when an error in resolving the instance occurs. The error dictionary will contain two key/value pairs representing the error domain and code (see the NSNetServicesError enumeration above for error code constants).
  */
-//- (void)netService:(NSNetService *)sender didNotResolve:(NSDictionary *)errorDict {}
+- (void)netService:(NSNetService *)sender didNotResolve:(NSDictionary *)errorDict {
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/16 23:32:37" withLimitSec:0 withComment:@"didNotResolve"];
+}
 
 
 /* Sent to the NSNetService instance's delegate when the instance's previously running publication or resolution request has stopped.
  */
 - (void)netServiceDidStop:(NSNetService *)sender {
-    NSLog(@"サーバ側のタイムアウト、コレが原因で切断されてるのかも。 %@", sender);
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/16 23:32:23" withLimitSec:0 withComment:@"サーバ側のタイムアウト、コレが原因で切断されてるのかも。→違う。"];
 }
 
 
 /* Sent to the NSNetService instance's delegate when the instance is being monitored and the instance's TXT record has been updated. The new record is contained in the data parameter.
  */
-//- (void)netService:(NSNetService *)sender didUpdateTXTRecordData:(NSData *)data {}
+- (void)netService:(NSNetService *)sender didUpdateTXTRecordData:(NSData *)data {
+    NSLog(@"didUpdateTXTRecordData");
+}
 
 
 
@@ -526,10 +545,13 @@ CGPoint beforeInputPoint;
  * kCFBooleanTrue for kCFStreamSSLIsServer in the settings dictionary along with
  * a valid SecIdentityRef as the first entry of kCFStreamSSLCertificates.
  */
-//- (void)netService:(NSNetService *)sender didAcceptConnectionWithInputStream:(NSInputStream *)inputStream outputStream:(NSOutputStream *)outputStream {}
+- (void)netService:(NSNetService *)sender didAcceptConnectionWithInputStream:(NSInputStream *)inputStream outputStream:(NSOutputStream *)outputStream {
+    NSLog(@"didAcceptConnectionWithInputStream");
+}
 
-
-
+/**
+ 
+ */
 - (void) acceptConnection:(NSNotification *)notif {
     NSString *connectedHandle = [notif userInfo][NSFileHandleNotificationFileHandleItem];
     [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 2:31:52" withLimitSec:100000 withComment:@"サーバ側、誰と繋がったか表示したいがさて、名前がわからない。socketから引けって感じなのかな。とりあえず後回し。"];

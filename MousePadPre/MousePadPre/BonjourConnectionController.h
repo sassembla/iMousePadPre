@@ -16,6 +16,12 @@
 typedef NS_ENUM(int, MESSAGE_BONJOUR) {
     BONJOUR_MESSAGE_SEARCHING,
     BONJOUR_MESSAGE_SEARCHED,
+    BONJOUR_MESSAGE_FAILED_TO_SEARCH,
+    
+    BONJOUR_MESSAGE_CONNECTING,
+    BONJOUR_MESSAGE_CONNECTED,
+    BONJOUR_MESSAGE_CONNECT_FAILED,
+    
     BONJOUR_MESSAGE_MISC
 };
 
@@ -24,5 +30,6 @@ typedef NS_ENUM(int, MESSAGE_BONJOUR) {
 }
 
 - (void) sendPoint:(CGPoint)point withType:(Byte)type andKeysData:(KeysData)KeysData;
+- (void) resetSearchBonjourNetwork;
 
 @end

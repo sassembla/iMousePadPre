@@ -22,8 +22,6 @@
         messenger = [[KSMessenger alloc] initWithBodyID:self withSelector:@selector(receiver:) withName:MESSENGER_BONJOURCONTROLLER];
         [messenger connectParent:MESSENGER_MAINVIEWCONTROLLER];
         
-        [messenger callParent:BONJOUR_MESSAGE_SEARCHING, nil];
-        
         [self searchBonjourNetwork];
     }
     return self;
@@ -60,8 +58,23 @@ NSOutputStream *bonjourOutputStream;
 - (void) searchBonjourNetwork {
     bonjourState = STATE_BONJOUR_SEARCHING;
     
+    
+    [messenger callParent:BONJOUR_MESSAGE_SEARCHING, nil];
+    
+    
     bonjourBrowser = [[NSNetServiceBrowser alloc] init];
     bonjourBrowser.delegate = self;
+    [bonjourBrowser searchForServicesOfType:BONJOUR_TYPE inDomain:BONJOUR_DOMAIN];
+}
+
+- (void) resetSearchBonjourNetwork {
+    bonjourState = STATE_BONJOUR_SEARCHING;
+    
+    [bonjourService stop];
+    
+    [messenger callParent:BONJOUR_MESSAGE_SEARCHING, nil];
+
+    [bonjourBrowser stop];
     [bonjourBrowser searchForServicesOfType:BONJOUR_TYPE inDomain:BONJOUR_DOMAIN];
 }
 
@@ -86,14 +99,17 @@ NSOutputStream *bonjourOutputStream;
 /* Sent to the NSNetServiceBrowser instance's delegate when an error in searching for domains or services has occurred. The error dictionary will contain two key/value pairs representing the error domain and code (see the NSNetServicesError enumeration above for error code constants). It is possible for an error to occur after a search has been started successfully.
  */
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didNotSearch:(NSDictionary *)errorDict {
-    [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"netServiceBrowser didNotSearch"], nil];
+    [messenger callParent:BONJOUR_MESSAGE_FAILED_TO_SEARCH,
+     [messenger tag:@"info" val:@"netServiceBrowser didNotSearch"],
+     [messenger tag:@"error" val:errorDict],
+     nil];
 }
 
 
 /* Sent to the NSNetServiceBrowser instance's delegate for each domain discovered. If there are more domains, moreComing will be YES. If for some reason handling discovered domains requires significant processing, accumulating domains until moreComing is NO and then doing the processing in bulk fashion may be desirable.
  */
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didFindDomain:(NSString *)domainString moreComing:(BOOL)moreComing {
-        [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"netServiceBrowser didFindDomain"], nil];
+    [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"netServiceBrowser didFindDomain"], nil];
 }
 
 /* Sent to the NSNetServiceBrowser instance's delegate when a previously discovered domain is no longer available.
@@ -113,14 +129,12 @@ NSOutputStream *bonjourOutputStream;
 /* Sent to the NSNetServiceBrowser instance's delegate for each service discovered. If there are more services, moreComing will be YES. If for some reason handling discovered services requires significant processing, accumulating services until moreComing is NO and then doing the processing in bulk fashion may be desirable.
  */
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didFindService:(NSNetService *)aNetService moreComing:(BOOL)moreComing {
+    NSString *connectedServerName = @"適当な名前";
+    [messenger callParent:BONJOUR_MESSAGE_SEARCHED,
+     [messenger tag:@"connectedServerName" val:connectedServerName],
+     nil];
     
     bonjourState = STATE_BONJOUR_CONNECTING;
-    
-    [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"netService connecting"], nil];
-    
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 9:20:09" withLimitSec:100000 withComment:@"クライアントだけをカットすると、\
-     n回目以降でサーバ側がなんもできなくなるので、\
-     根本からの接続ポイント作り直しをオートマチックに行う仕掛けが必要そう。 nは通信方式の数に依存。勝手にlocalとか着いてるからな。。"];
     
     bonjourService = [[NSNetService alloc] initWithDomain:[aNetService domain] type:[aNetService type] name:[aNetService name]];
     
@@ -139,7 +153,9 @@ NSOutputStream *bonjourOutputStream;
  */
 /* Sent to the NSNetService instance's delegate prior to advertising the service on the network. If for some reason the service cannot be published, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotPublish: method.
  */
-//- (void)netServiceWillPublish:(NSNetService *)sender {}
+- (void)netServiceWillPublish:(NSNetService *)sender {
+    NSLog(@"???");
+}
 
 /* Sent to the NSNetService instance's delegate when the publication of the instance is complete and successful.
  */
@@ -158,14 +174,12 @@ NSOutputStream *bonjourOutputStream;
 
 /* Sent to the NSNetService instance's delegate when one or more addresses have been resolved for an NSNetService instance. Some NSNetService methods will return different results before and after a successful resolution. An NSNetService instance may get resolved more than once; truly robust clients may wish to resolve again after an error, or to resolve more than once.
  */
-/**
- 接続完了からの動作を行う
- 複数接続先が現れる可能性がある。んだがこれどうなるんだろう。
- */
 - (void)netServiceDidResolveAddress:(NSNetService *)sender {
-    NSLog(@"connected sender is %@", sender);
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 9:29:16" withLimitSec:100000 withComment:@"リストで接続先の判定を行う感じ。事前になにか要素をセットしておく形にするか。"];
+    NSLog(@"sender port:%ld", (long)sender.port);
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/17 14:55:02" withLimitSec:100000 withComment:@"ポート番号で違いが出てる。なるほどなーーこれらをコレクションしてどれでつなぐか、っていうのを見る必要は確かに無いわけだ。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/17 14:55:05" withLimitSec:10000 withComment:@"ここで止まる。"];
     
+    [messenger callParent:BONJOUR_MESSAGE_CONNECTING, nil];
     NSInputStream *inputStream;
     
     bool result = [sender getInputStream:&inputStream outputStream:&bonjourOutputStream];
@@ -188,9 +202,7 @@ NSOutputStream *bonjourOutputStream;
 
 /* Sent to the NSNetService instance's delegate when the instance's previously running publication or resolution request has stopped.
  */
-- (void)netServiceDidStop:(NSNetService *)sender {
-    [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"netServiceDidStop"], nil];
-}
+- (void)netServiceDidStop:(NSNetService *)sender {}
 
 /* Sent to the NSNetService instance's delegate when the instance is being monitored and the instance's TXT record has been updated. The new record is contained in the data parameter.
  */
@@ -229,7 +241,10 @@ NSOutputStream *bonjourOutputStream;
 - (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode {
     
     if ((eventCode & NSStreamEventOpenCompleted) != 0) {
-        [messenger callParent:BONJOUR_MESSAGE_SEARCHED, [messenger tag:@"connectedServerName" val:@"bonjour server"], nil];
+        [TimeMine setTimeMineLocalizedFormat:@"2014/10/27 14:58:00" withLimitSec:10000 withComment:@"ここまでくれば接続完了、"];
+        [TimeMine setTimeMineLocalizedFormat:@"2014/10/17 15:01:58" withLimitSec:1000000 withComment:@"接続完了したので名前を入れる"];
+        
+        [messenger callParent:BONJOUR_MESSAGE_CONNECTED, [messenger tag:@"connectedServerName" val:@"bonjour server"], nil];
         bonjourState = STATE_BONJOUR_CONNECTED;
     }
     

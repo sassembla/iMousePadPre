@@ -42,8 +42,9 @@ typedef NS_ENUM(Byte, INPUT_EVENT) {
     BUTTON_EVENT_UPDATED
 };
 
-
+// 2014/10/16 0:18:30
 typedef NS_ENUM(Byte, MOUSE_INPUT_EVENT) {
+    MOUSE_BUTTON_NONE,
     MOUSE_BUTTON_DOWN,
     MOUSE_BUTTON_DRAG,
     MOUSE_BUTTON_UP,
@@ -64,13 +65,13 @@ typedef struct MouseButtonsData MouseButtonsData;
 
 - (void)viewDidLoad {
     mouseIndicateViewCont = [[MouseIndicatorViewController alloc] initWithBaseview:self.view];
-    
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/14 14:26:57" withLimitSec:100000 withComment:@"倍率入れたい。ピクセルマッチさせない的な。"];
     [super viewDidLoad];
     
     messenger = [[KSMessenger alloc]initWithBodyID:self withSelector:@selector(receiver:) withName:MESSENGER_MAINVIEWCONTROLLER];
     
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/14 14:27:00" withLimitSec:11000000 withComment:@"設定ファイルの事を考える、userPrefでいいはず"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/14 14:27:00" withLimitSec:11000000 withComment:@"設定ファイルの事を考える、userPrefでいいはずだが、いまんとこ固定コード"];
+    
+    
     /**
      設定ファイルを読み込む
      存在しなければデフォルトを読む
@@ -94,7 +95,7 @@ typedef struct MouseButtonsData MouseButtonsData;
             break;
         }
         case CONNECTIONTYPE_BLUETOOTHLE:{
-            [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:25:42" withLimitSec:0 withComment:@"いつかなんとかしたい。"];
+            [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 9:25:42" withLimitSec:0 withComment:@"いつかなんとかしたい。CONNECTIONTYPE_BLUETOOTHLEでのマウスとしての接続。"];
             break;
         }
             
@@ -108,7 +109,21 @@ typedef struct MouseButtonsData MouseButtonsData;
 }
 
 - (IBAction)reconnect:(id)sender {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/09 10:16:30" withLimitSec:1000000 withComment:@"接続に対して、チェックを行う。"];
+
+    switch (connectionType) {
+        case CONNECTIONTYPE_BONJOUR:{
+            [bonConnectCont resetSearchBonjourNetwork];
+            break;
+        }
+        case CONNECTIONTYPE_BLUETOOTHLE:{
+            [TimeMine setTimeMineLocalizedFormat:@"2014/10/16 21:32:22" withLimitSec:0 withComment:@"BTの接続し直しを行うコード、未定義"];
+            break;
+        }
+            
+            
+        default:
+            break;
+    }
 }
 
 /**
@@ -131,6 +146,24 @@ typedef struct MouseButtonsData MouseButtonsData;
         }
             
         case BONJOUR_MESSAGE_SEARCHED:{
+            [_infoMessage setText:@"searched service, connecting..."];
+            break;
+        }
+        case BONJOUR_MESSAGE_FAILED_TO_SEARCH:{
+            NSString *informationMessage = paramsDict[@"info"];
+            [_infoMessage setText:informationMessage];
+            NSLog(@"error %@", paramsDict[@"error"]);
+            
+            break;
+        }
+            
+        case BONJOUR_MESSAGE_CONNECTING:{
+            NSLog(@"接続中、あと1ステップ");
+            break;
+        }
+            
+        case BONJOUR_MESSAGE_CONNECTED:{
+            NSLog(@"BONJOUR_MESSAGE_CONNECTED!!!");
             NSString *connectedServerName = paramsDict[@"connectedServerName"];
             [_indicatorButton setTitle:connectedServerName forState:UIControlStateNormal];
             [_indicatorCircle setHidden:YES];
@@ -143,6 +176,13 @@ typedef struct MouseButtonsData MouseButtonsData;
             [alert show];
             [messenger call:MESSENGER_FADEVIEWCONTROLLER withExec:FADEOUT_MESSAGE_FADEOUT, nil];
             
+            [self resetInputParameter];
+            
+            
+            break;
+        }
+        
+        case BONJOUR_MESSAGE_CONNECT_FAILED:{
             break;
         }
             
@@ -178,6 +218,12 @@ typedef struct MouseButtonsData MouseButtonsData;
         default:
             break;
     }
+}
+
+- (void) resetInputParameter {
+    mouseButtonsData.left = MOUSE_BUTTON_NONE;
+    mouseButtonsData.right = MOUSE_BUTTON_NONE;
+    mouseButtonsData.center = MOUSE_BUTTON_NONE;
 }
 
 
@@ -249,6 +295,11 @@ MouseButtonsData mouseButtonsData;
     }
     
     [self setMovePoint:currentViewMousePoint withMouseEventType:MOUSE_EVENT_END];
+    
+    /*
+     Upされたあとは、自動的に MOUSE_BUTTON_NONE にする
+     */
+    [self resetMouseTouchUp];
 }
 
 
@@ -257,9 +308,8 @@ MouseButtonsData mouseButtonsData;
  */
 - (void) detectMousePointerTouch:(UIEvent *)event withBeganTouches:(NSSet *)touches {
     
-    // まだ存在する場合、復帰
+    // pointerTouchがまだ存在する場合、何もしない。
     if (pointerTouch) return;
-    
     
     NSSet *currentViewTouches = [event touchesForView:self.view];
     
@@ -285,7 +335,6 @@ MouseButtonsData mouseButtonsData;
         [mouseIndicateViewCont turnOn];
         return;
     }
-    
 }
 
 /**
@@ -352,6 +401,12 @@ MouseButtonsData mouseButtonsData;
     }
 }
 
+- (void) resetMouseTouchUp {
+    if (mouseButtonsData.left == MOUSE_BUTTON_UP) mouseButtonsData.left = MOUSE_BUTTON_NONE;
+    if (mouseButtonsData.right == MOUSE_BUTTON_UP) mouseButtonsData.right = MOUSE_BUTTON_NONE;
+    if (mouseButtonsData.center == MOUSE_BUTTON_UP) mouseButtonsData.center = MOUSE_BUTTON_NONE;
+}
+
 
 
 /**
@@ -378,6 +433,7 @@ MouseButtonsData mouseButtonsData;
             [bonConnectCont sendPoint:point withType:type andKeysData:keysData];
             break;
         }
+            
         case CONNECTIONTYPE_BLUETOOTHLE:{
             [TimeMine setTimeMineLocalizedFormat:@"2014/09/23 21:40:52" withLimitSec:0 withComment:@"bt未対応、対応したい。"];
             break;
