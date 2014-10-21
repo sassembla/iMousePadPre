@@ -10,7 +10,6 @@
 #define MousePadPre_Messengers_h
 
 
-
 #define MESSENGER_MAINVIEWCONTROLLER    (@"mainViewMessenger")
 #define MESSENGER_KEYBOARDMANAGER       (@"keyboardManager")
 #define MESSENGER_BUTTON                (@"button")

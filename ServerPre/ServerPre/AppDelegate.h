@@ -10,8 +10,10 @@
 
 
 
-// 2014/10/13 16:54:55
+// 2014/10/22 4:16:51
 struct MousePadData {
+    bool isHeartBeat;
+    
     CGPoint mousePoint;
     Byte mouseEventType;
     
@@ -21,6 +23,8 @@ struct MousePadData {
     
     Byte keySlots[8];
 };
+
+typedef struct MousePadData MousePadData;
 
 typedef struct MousePadData MousePadData;
 
@@ -34,7 +38,6 @@ typedef NS_ENUM(int, BONJOUR_RECEIVER_STATE) {
 
 @interface AppDelegate : NSObject <NSApplicationDelegate, NSPortDelegate, NSNetServiceDelegate, NSUserNotificationCenterDelegate>
 
-- (NSWindow *)window;
 - (void) setState:(int)nextState;
 - (void) execute:(NSData *)data;
 @end

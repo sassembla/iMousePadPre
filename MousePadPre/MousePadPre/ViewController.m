@@ -69,6 +69,7 @@ typedef struct MouseButtonsData MouseButtonsData;
     
     messenger = [[KSMessenger alloc]initWithBodyID:self withSelector:@selector(receiver:) withName:MESSENGER_MAINVIEWCONTROLLER];
     
+    
     [TimeMine setTimeMineLocalizedFormat:@"2014/10/14 14:27:00" withLimitSec:11000000 withComment:@"設定ファイルの事を考える、userPrefでいいはずだが、いまんとこ固定コード"];
     
     
@@ -158,7 +159,7 @@ typedef struct MouseButtonsData MouseButtonsData;
         }
             
         case BONJOUR_MESSAGE_CONNECTING:{
-            NSLog(@"接続中、あと1ステップ");
+            [_indicatorButton setTitle:@"mousepad server connection connecting..." forState:UIControlStateNormal];
             break;
         }
             
@@ -167,6 +168,9 @@ typedef struct MouseButtonsData MouseButtonsData;
             NSString *connectedServerName = paramsDict[@"connectedServerName"];
             [_indicatorButton setTitle:connectedServerName forState:UIControlStateNormal];
             [_indicatorCircle setHidden:YES];
+            
+            // disappear message.
+            [_indicatorButton setTitle:@"" forState:UIControlStateNormal];
             
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"bonjour connected."
                                                             message:@"ok"
@@ -204,7 +208,6 @@ typedef struct MouseButtonsData MouseButtonsData;
     /*
      FadeViewからの通知
      */
-    
     
     
     /*

@@ -12,7 +12,6 @@
 #import "TimeMine.h"
 
 @interface AppDelegate ()
-@property (weak) IBOutlet NSWindow *window;
 @end
 
 
@@ -46,9 +45,6 @@ typedef NS_ENUM(Byte, MOUSE_INPUT_EVENT) {
 };
 
 
-
-
-
 NSSocketPort *bonjourSocket;
 NSNetService *bonjourService;
 NSFileHandle *bonjourSocketHandle;
@@ -66,17 +62,13 @@ NSMutableDictionary *screenInfo;
 
 
 
-
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     NSLog(@"boot!");
-    
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/17 14:59:23" withLimitSec:100000 withComment:@"クライアントの切断をハンドルする"];
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/17 14:59:23" withLimitSec:100000 withComment:@"通信方法の追加をハンドルする"];
     
     /*
      画面サイズの取得
      */
-    NSScreen *screen = [_window screen];
+    NSScreen *screen = [NSScreen mainScreen];
     screenInfo = [[NSMutableDictionary alloc]init];
     SCREEN_WIDTH = screen.frame.size.width;
     SCREEN_HEIGHT = screen.frame.size.height;
@@ -84,26 +76,25 @@ NSMutableDictionary *screenInfo;
     [self publishBonjourNetService];
 }
 
-- (void) notifyToUserWithStatus:(int)status withTitle:(NSString *)title message:(NSString *)message {
-    NSUserNotification * newUserNotification = [NSUserNotification new];
-    newUserNotification.actionButtonTitle = [[NSString alloc]initWithFormat:@"%d", status];
-    newUserNotification.title = @"mouseServer";
-    newUserNotification.subtitle = title;
-    newUserNotification.informativeText = message;
-    
-    [notifier deliverNotification:newUserNotification];
-}
-
+/**
+ bonjourをpublishする
+ */
 - (void) publishBonjourNetService {
     
     notifier = [NSUserNotificationCenter defaultUserNotificationCenter];
     notifier.delegate = self;
     
-    
+
+    [self resetPort];
+}
+
+- (void) resetPort {
     /*
      自動的にportを割り当てる
      */
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/19 17:19:47" withLimitSec:1000000 withComment:@"resetの開始"];
     bonjourSocket = [[NSSocketPort alloc] init];
+    
     bonjourSocket.delegate = self;
     
     if (!bonjourSocket) {
@@ -121,6 +112,8 @@ NSMutableDictionary *screenInfo;
     
     int portNumber = ntohs(addr.sin_port);
     
+    NSLog(@"portNum %d", portNumber);
+    
     
     /*
      bonjourで使用するサービスに関連づける
@@ -135,8 +128,28 @@ NSMutableDictionary *screenInfo;
     }
 }
 
+
+- (void)handlePortMessage:(NSPortMessage *)message {
+    NSLog(@"handlePortMessage %@", message);
+}
+
 - (void) setState:(int)nextState {
     state = nextState;
+}
+
+
+
+/**
+ 通知
+ */
+- (void) notifyToUserWithStatus:(int)status withTitle:(NSString *)title message:(NSString *)message {
+    NSUserNotification * newUserNotification = [NSUserNotification new];
+    newUserNotification.actionButtonTitle = [[NSString alloc]initWithFormat:@"%d", status];
+    newUserNotification.title = @"mouseServer";
+    newUserNotification.subtitle = title;
+    newUserNotification.informativeText = message;
+    
+    [notifier deliverNotification:newUserNotification];
 }
 
 
@@ -429,7 +442,7 @@ CGPoint beforeInputPoint;
  */
 // Sent to the delegate when a notification delivery date has arrived. At this time, the notification has either been presented to the user or the notification center has decided not to present it because your application was already frontmost.
 - (void)userNotificationCenter:(NSUserNotificationCenter *)center didDeliverNotification:(NSUserNotification *)notification {
-    NSLog(@"通知%@", notification);
+    // notificationが表示されたらここにくる
 }
 
 
@@ -458,10 +471,12 @@ CGPoint beforeInputPoint;
 }
 
 // Sent to the delegate when the Notification Center has decided not to present your notification, for example when your application is front most. If you want the notification to be displayed anyway, return YES.
-//- (BOOL)userNotificationCenter:(NSUserNotificationCenter *)center shouldPresentNotification:(NSUserNotification *)notification {
+- (BOOL)userNotificationCenter:(NSUserNotificationCenter *)center shouldPresentNotification:(NSUserNotification *)notification {
 //    [TimeMine setTimeMineLocalizedFormat:@"2014/10/16 23:33:39" withLimitSec:0 withComment:@"shouldPresentNotification 通知系なのでいらないっぽい。"];
-//    return false;
-//}
+    return true;
+}
+
+
 
 
 
@@ -471,6 +486,7 @@ CGPoint beforeInputPoint;
 /* Sent to the NSNetService instance's delegate prior to advertising the service on the network. If for some reason the service cannot be published, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotPublish: method.
  */
 - (void)netServiceWillPublish:(NSNetService *)sender {
+    NSLog(@"netServiceWillPublish!");
 //    [TimeMine setTimeMineLocalizedFormat:@"2014/10/16 23:33:53" withLimitSec:0 withComment:@"netServiceWillPublish 単にこれから展開するよ、みたいなやつっぽい。"];
 }
 
@@ -491,6 +507,7 @@ CGPoint beforeInputPoint;
         [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_PUBLISH_BONJOUR withTitle:@"server failed" message:@"failed to publish bonjour network. reboot?"];
     }
 }
+
 
 
 /* Sent to the NSNetService instance's delegate when an error in publishing the instance occurs. The error dictionary will contain two key/value pairs representing the error domain and code (see the NSNetServicesError enumeration above for error code constants). It is possible for an error to occur after a successful publication.
@@ -540,6 +557,7 @@ CGPoint beforeInputPoint;
  * and schedule the streams. To reject a connection, just -open both streams and
  * then immediately -close them.
  
+ 
  * To enable TLS on the stream, set the various TLS settings using
  * kCFStreamPropertySSLSettings before calling -open. You must also specify
  * kCFBooleanTrue for kCFStreamSSLIsServer in the settings dictionary along with
@@ -550,11 +568,14 @@ CGPoint beforeInputPoint;
 }
 
 /**
- 
+ クライアントのconnectingを受け取った「後」
  */
 - (void) acceptConnection:(NSNotification *)notif {
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 1:27:59" withLimitSec:100000 withComment:@"acceptConnection!!!!!!!!!!!!"];
+    
     NSString *connectedHandle = [notif userInfo][NSFileHandleNotificationFileHandleItem];
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 2:31:52" withLimitSec:100000 withComment:@"サーバ側、誰と繋がったか表示したいがさて、名前がわからない。socketから引けって感じなのかな。とりあえず後回し。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/18 20:15:03" withLimitSec:1000000 withComment:@"クライアントが作り直しになったらここに来れる"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 2:31:52" withLimitSec:100000 withComment:@"ここで接続完了になる。サーバ側、誰と繋がったか表示したいがさて、名前がわからない。socketから引けって感じなのかな。とりあえず後回し。"];
     
     [self setState:BONJOUR_RECEIVER_ACCEPTED_IOS];
     
@@ -565,14 +586,13 @@ CGPoint beforeInputPoint;
     NSString *nowDateStr = [[NSString alloc]initWithFormat:@"time:%@", nowDate];
     [self notifyToUserWithStatus:BONJOUR_RECEIVER_ACCEPTED_IOS withTitle:@"device connected" message:nowDateStr];
     
-    
     bonjourDataReadHandle = [[notif userInfo] objectForKey:NSFileHandleNotificationFileHandleItem];
-    
     
     /*
      Bonjour越しのデータを受け取るハンドラの設置
      */
     bonjourDataReadHandle.readabilityHandler = ^(NSFileHandle *fileHandle) {
+        NSLog(@"bonjourDataReadHandle");
         @try {
             NSData *data = [fileHandle availableData];
             [self execute:data];
@@ -583,11 +603,22 @@ CGPoint beforeInputPoint;
         @finally {
             
         }
-        
     };
+    
+    
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(acceptConnection2:) name:NSFileHandleConnectionAcceptedNotification object:bonjourDataReadHandle];
+    [bonjourDataReadHandle acceptConnectionInBackgroundAndNotify];
 }
 
-
+- (void) acceptConnection2:(NSNotification *)notif {
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 4:37:02" withLimitSec:1000000 withComment:@"切断イベントかと思ったが、違った。最初の一瞬の通信、っていうのに反応してる。あと切断にも反応している。エラーが出る原因はなんだろう。22番とは一体。解決できれば良い気がする。"];
+    NSData *data = [bonjourDataReadHandle availableData];
+    NSLog(@"data %@", data);
+//    [bonjourDataReadHandle closeFile];
+    NSLog(@"acceptConnection2 notif %@ bonjourDataReadHandle:%@", notif, bonjourDataReadHandle);
+    
+}
 
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {

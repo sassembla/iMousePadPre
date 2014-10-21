@@ -33,10 +33,10 @@
 
 
 
-
 #define BONJOUR_DOMAIN  (@"")
 #define BONJOUR_TYPE    (@"_mousepad._tcp")//_test._tcp
 //#define BONJOUR_NAME    (@"hello!")
+
 #define BONJOUR_TIMEOUT (5.0f)
 
 int bonjourState;
@@ -129,6 +129,8 @@ NSOutputStream *bonjourOutputStream;
 /* Sent to the NSNetServiceBrowser instance's delegate for each service discovered. If there are more services, moreComing will be YES. If for some reason handling discovered services requires significant processing, accumulating services until moreComing is NO and then doing the processing in bulk fashion may be desirable.
  */
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didFindService:(NSNetService *)aNetService moreComing:(BOOL)moreComing {
+    NSLog(@"すでにサービス見つけてるなあ、、55247 aNetServiceBrowser:%@ aNetService:%@ moreComing:%d", aNetServiceBrowser, aNetService, moreComing);
+    
     NSString *connectedServerName = @"適当な名前";
     [messenger callParent:BONJOUR_MESSAGE_SEARCHED,
      [messenger tag:@"connectedServerName" val:connectedServerName],
@@ -148,6 +150,7 @@ NSOutputStream *bonjourOutputStream;
 
 
 
+
 /**
  NSNetServiceDelegateのdelegate
  */
@@ -159,7 +162,9 @@ NSOutputStream *bonjourOutputStream;
 
 /* Sent to the NSNetService instance's delegate when the publication of the instance is complete and successful.
  */
-//- (void)netServiceDidPublish:(NSNetService *)sender {}
+- (void)netServiceDidPublish:(NSNetService *)sender {
+    NSLog(@"netServiceDidPublish %@", sender);
+}
 
 /* Sent to the NSNetService instance's delegate when an error in publishing the instance occurs. The error dictionary will contain two key/value pairs representing the error domain and code (see the NSNetServicesError enumeration above for error code constants). It is possible for an error to occur after a successful publication.
  */
@@ -169,15 +174,16 @@ NSOutputStream *bonjourOutputStream;
 
 /* Sent to the NSNetService instance's delegate prior to resolving a service on the network. If for some reason the resolution cannot occur, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotResolve: method.
  */
-//- (void)netServiceWillResolve:(NSNetService *)sender {}
+- (void)netServiceWillResolve:(NSNetService *)sender {
+    NSLog(@"netServiceWillResolve %@", sender);
+}
 
 
 /* Sent to the NSNetService instance's delegate when one or more addresses have been resolved for an NSNetService instance. Some NSNetService methods will return different results before and after a successful resolution. An NSNetService instance may get resolved more than once; truly robust clients may wish to resolve again after an error, or to resolve more than once.
  */
 - (void)netServiceDidResolveAddress:(NSNetService *)sender {
-    NSLog(@"sender port:%ld", (long)sender.port);
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/17 14:55:02" withLimitSec:100000 withComment:@"ポート番号で違いが出てる。なるほどなーーこれらをコレクションしてどれでつなぐか、っていうのを見る必要は確かに無いわけだ。"];
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/17 14:55:05" withLimitSec:10000 withComment:@"ここで止まる。"];
+    NSLog(@"netServiceDidResolveAddress sender port:%ld", (long)sender.port);
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/21 20:58:56" withLimitSec:100000 withComment:@"ポート番号で違いが出てる。なるほどなーーこれらをコレクションしてどれでつなぐか、っていうのを見る必要は確かに無いわけだ。"];
     
     [messenger callParent:BONJOUR_MESSAGE_CONNECTING, nil];
     NSInputStream *inputStream;
@@ -248,22 +254,27 @@ NSOutputStream *bonjourOutputStream;
         bonjourState = STATE_BONJOUR_CONNECTED;
     }
     
-//    if ((eventCode & NSStreamEventHasBytesAvailable) != 0) {
-//        [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"NSStreamEventHasBytesAvailable"], nil];
-//    }
+    if ((eventCode & NSStreamEventHasBytesAvailable) != 0) {
+        NSLog(@"NSStreamEventHasBytesAvailable");
+        [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"NSStreamEventHasBytesAvailable"], nil];
+    }
     
 //    if ((eventCode & NSStreamEventHasSpaceAvailable) != 0) {
+//        NSLog(@"NSStreamEventHasSpaceAvailable");
 //        [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"NSStreamEventHasSpaceAvailable"], nil];
 //    }
     
     if ((eventCode & NSStreamEventErrorOccurred) != 0) {
+        NSLog(@"NSStreamEventErrorOccurred");
         [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"NSStreamEventErrorOccurred"], nil];
     }
     
     if ((eventCode & NSStreamEventEndEncountered) != 0) {
+        NSLog(@"NSStreamEventEndEncountered");
         [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"NSStreamEventEndEncountered"], nil];
     }
     
+//    NSLog(@"handleEvent!");
 }
 
 
@@ -273,8 +284,10 @@ NSOutputStream *bonjourOutputStream;
 }
 
 
-// 2014/10/13 16:54:55
+// 2014/10/22 4:16:51
 struct MousePadData {
+    bool isHeartBeat;
+    
     CGPoint mousePoint;
     Byte mouseEventType;
     
@@ -295,6 +308,9 @@ typedef struct MousePadData MousePadData;
     if (bonjourState != STATE_BONJOUR_CONNECTED) return;
     
     MousePadData mousePadData;
+    
+    mousePadData.isHeartBeat = false;
+    
     mousePadData.mousePoint = point;
     mousePadData.mouseEventType = type;
     
@@ -317,8 +333,14 @@ typedef struct MousePadData MousePadData;
 }
 
 - (void) sendHeartBeat {
-    MousePadData heartBeat;
-    NSData *data = [NSData dataWithBytes:&heartBeat length:sizeof(MousePadData)];
+    if (![self isBonjourConnected]) return;
+    if (bonjourState != STATE_BONJOUR_CONNECTED) return;
+    
+    MousePadData mousePadData;
+    
+    mousePadData.isHeartBeat = true;
+    
+    NSData *data = [NSData dataWithBytes:&mousePadData length:sizeof(MousePadData)];
     [bonjourOutputStream write:[data bytes] maxLength:[data length]];
 }
 
