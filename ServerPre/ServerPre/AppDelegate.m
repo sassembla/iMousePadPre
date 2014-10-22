@@ -48,7 +48,7 @@ typedef NS_ENUM(Byte, MOUSE_INPUT_EVENT) {
 NSSocketPort *bonjourSocket;
 NSNetService *bonjourService;
 NSFileHandle *bonjourSocketHandle;
-NSFileHandle *bonjourDataReadHandle;
+NSFileHandle *bonjourAcceptedHandle;
 
 NSUserNotificationCenter *notifier;
 
@@ -494,11 +494,11 @@ CGPoint beforeInputPoint;
 /* Sent to the NSNetService instance's delegate when the publication of the instance is complete and successful.
  */
 - (void)netServiceDidPublish:(NSNetService *)sender {
-    
+    NSLog(@"netServiceDidPublish!!!!!!! %@", sender);
     bonjourSocketHandle = [[NSFileHandle alloc] initWithFileDescriptor:[bonjourSocket socket] closeOnDealloc:YES];
     if (bonjourSocketHandle) {
         /*
-         通知をセット
+         接続を受け付けた後の通知をセット
          */
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(acceptConnection:) name:NSFileHandleConnectionAcceptedNotification object:bonjourSocketHandle];
         
@@ -571,12 +571,6 @@ CGPoint beforeInputPoint;
  クライアントのconnectingを受け取った「後」
  */
 - (void) acceptConnection:(NSNotification *)notif {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 1:27:59" withLimitSec:100000 withComment:@"acceptConnection!!!!!!!!!!!!"];
-    
-    NSString *connectedHandle = [notif userInfo][NSFileHandleNotificationFileHandleItem];
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/18 20:15:03" withLimitSec:1000000 withComment:@"クライアントが作り直しになったらここに来れる"];
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 2:31:52" withLimitSec:100000 withComment:@"ここで接続完了になる。サーバ側、誰と繋がったか表示したいがさて、名前がわからない。socketから引けって感じなのかな。とりあえず後回し。"];
-    
     [self setState:BONJOUR_RECEIVER_ACCEPTED_IOS];
     
     /*
@@ -586,38 +580,28 @@ CGPoint beforeInputPoint;
     NSString *nowDateStr = [[NSString alloc]initWithFormat:@"time:%@", nowDate];
     [self notifyToUserWithStatus:BONJOUR_RECEIVER_ACCEPTED_IOS withTitle:@"device connected" message:nowDateStr];
     
-    bonjourDataReadHandle = [[notif userInfo] objectForKey:NSFileHandleNotificationFileHandleItem];
-    
     /*
-     Bonjour越しのデータを受け取るハンドラの設置
+        定義済みのpointerを使わないと、deallocされてしまう。
      */
-    bonjourDataReadHandle.readabilityHandler = ^(NSFileHandle *fileHandle) {
-        NSLog(@"bonjourDataReadHandle");
-        @try {
-            NSData *data = [fileHandle availableData];
-            [self execute:data];
-        }
-        @catch (NSException *exception) {
-            NSLog(@"exception %@", exception);
-        }
-        @finally {
+    bonjourAcceptedHandle = [[notif userInfo] objectForKey:NSFileHandleNotificationFileHandleItem];
+    
+    bonjourAcceptedHandle.writeabilityHandler = ^(NSFileHandle *fileHandle) {
+        NSData *data = [fileHandle availableData];
+        
+        /*
+         detect disconnected
+         */
+        if ([data length] == 0) {
             
+            //このコードで、再接続時の100%を防げる。
+            fileHandle.writeabilityHandler = nil;
+            fileHandle.readabilityHandler = nil;
+            NSLog(@"disconnect");
+            return;
         }
+        
+        NSLog(@"doooo");
     };
-    
-    
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(acceptConnection2:) name:NSFileHandleConnectionAcceptedNotification object:bonjourDataReadHandle];
-    [bonjourDataReadHandle acceptConnectionInBackgroundAndNotify];
-}
-
-- (void) acceptConnection2:(NSNotification *)notif {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 4:37:02" withLimitSec:1000000 withComment:@"切断イベントかと思ったが、違った。最初の一瞬の通信、っていうのに反応してる。あと切断にも反応している。エラーが出る原因はなんだろう。22番とは一体。解決できれば良い気がする。"];
-    NSData *data = [bonjourDataReadHandle availableData];
-    NSLog(@"data %@", data);
-//    [bonjourDataReadHandle closeFile];
-    NSLog(@"acceptConnection2 notif %@ bonjourDataReadHandle:%@", notif, bonjourDataReadHandle);
-    
 }
 
 

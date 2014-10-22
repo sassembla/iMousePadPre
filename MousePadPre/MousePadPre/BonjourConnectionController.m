@@ -129,7 +129,7 @@ NSOutputStream *bonjourOutputStream;
 /* Sent to the NSNetServiceBrowser instance's delegate for each service discovered. If there are more services, moreComing will be YES. If for some reason handling discovered services requires significant processing, accumulating services until moreComing is NO and then doing the processing in bulk fashion may be desirable.
  */
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didFindService:(NSNetService *)aNetService moreComing:(BOOL)moreComing {
-    NSLog(@"すでにサービス見つけてるなあ、、55247 aNetServiceBrowser:%@ aNetService:%@ moreComing:%d", aNetServiceBrowser, aNetService, moreComing);
+    NSLog(@"すでにサービス見つけてる aNetServiceBrowser:%@ aNetService:%@ moreComing:%d", aNetServiceBrowser, aNetService, moreComing);
     
     NSString *connectedServerName = @"適当な名前";
     [messenger callParent:BONJOUR_MESSAGE_SEARCHED,
@@ -183,7 +183,7 @@ NSOutputStream *bonjourOutputStream;
  */
 - (void)netServiceDidResolveAddress:(NSNetService *)sender {
     NSLog(@"netServiceDidResolveAddress sender port:%ld", (long)sender.port);
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/21 20:58:56" withLimitSec:100000 withComment:@"ポート番号で違いが出てる。なるほどなーーこれらをコレクションしてどれでつなぐか、っていうのを見る必要は確かに無いわけだ。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/23 0:46:08" withLimitSec:100000 withComment:@"ポート番号で違いが出てる。なるほどなーーこれらをコレクションしてどれでつなぐか、っていうのを見る必要は確かに無いわけだ。"];
     
     [messenger callParent:BONJOUR_MESSAGE_CONNECTING, nil];
     NSInputStream *inputStream;
