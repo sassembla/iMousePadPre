@@ -183,7 +183,6 @@ NSOutputStream *bonjourOutputStream;
  */
 - (void)netServiceDidResolveAddress:(NSNetService *)sender {
     NSLog(@"netServiceDidResolveAddress sender port:%ld", (long)sender.port);
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/23 0:46:08" withLimitSec:100000 withComment:@"ポート番号で違いが出てる。なるほどなーーこれらをコレクションしてどれでつなぐか、っていうのを見る必要は確かに無いわけだ。"];
     
     [messenger callParent:BONJOUR_MESSAGE_CONNECTING, nil];
     NSInputStream *inputStream;
@@ -265,7 +264,20 @@ NSOutputStream *bonjourOutputStream;
 //    }
     
     if ((eventCode & NSStreamEventErrorOccurred) != 0) {
-        NSLog(@"NSStreamEventErrorOccurred");
+        NSError *theError = [aStream streamError];
+        NSLog(@"NSStreamEventErrorOccurred theError%@", theError);
+        
+//        NSAlert *theAlert = [[NSAlert alloc] init];
+//        [theAlert setMessageText:@"Error reading stream!"];
+//        [theAlert setInformativeText:[NSString stringWithFormat:@"Error %i: %@",
+//                                      [theError code], [theError localizedDescription]]];
+//        [theAlert addButtonWithTitle:@"OK"];
+//        [theAlert beginSheetModalForWindow:[NSApp mainWindow]
+//                             modalDelegate:self
+//                            didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:)
+//                               contextInfo:nil];
+//        [stream close];
+//        [stream release];
         [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"NSStreamEventErrorOccurred"], nil];
     }
     

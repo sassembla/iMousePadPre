@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3347511019F8D353003173D5 /* KSMessenger.m in Sources */ = {isa = PBXBuildFile; fileRef = 3347510F19F8D353003173D5 /* KSMessenger.m */; };
 		335C359319D17C1A004CD23C /* TimeMine.m in Sources */ = {isa = PBXBuildFile; fileRef = 335C359219D17C1A004CD23C /* TimeMine.m */; };
 		33C6BCE819F2052600DFBCEB /* ServerPreMain.m in Sources */ = {isa = PBXBuildFile; fileRef = 33C6BCE719F2052600DFBCEB /* ServerPreMain.m */; };
 		33FA778119CABCF600D5C113 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 33FA778019CABCF600D5C113 /* main.m */; };
@@ -25,6 +26,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3347510E19F8D353003173D5 /* KSMessenger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KSMessenger.h; sourceTree = "<group>"; };
+		3347510F19F8D353003173D5 /* KSMessenger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KSMessenger.m; sourceTree = "<group>"; };
 		335C359119D17C1A004CD23C /* TimeMine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimeMine.h; sourceTree = "<group>"; };
 		335C359219D17C1A004CD23C /* TimeMine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimeMine.m; sourceTree = "<group>"; };
 		33C6BCE619F2052600DFBCEB /* ServerPreMain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ServerPreMain.h; sourceTree = "<group>"; };
@@ -57,6 +60,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3347511119F8D357003173D5 /* Messenger */ = {
+			isa = PBXGroup;
+			children = (
+				3347510E19F8D353003173D5 /* KSMessenger.h */,
+				3347510F19F8D353003173D5 /* KSMessenger.m */,
+			);
+			name = Messenger;
+			sourceTree = "<group>";
+		};
 		335C359419D17C1D004CD23C /* TimeAssert */ = {
 			isa = PBXGroup;
 			children = (
@@ -69,6 +81,7 @@
 		33FA777219CABCF600D5C113 = {
 			isa = PBXGroup;
 			children = (
+				3347511119F8D357003173D5 /* Messenger */,
 				335C359419D17C1D004CD23C /* TimeAssert */,
 				33FA777D19CABCF600D5C113 /* ServerPre */,
 				33FA779119CABCF600D5C113 /* ServerPreTests */,
@@ -224,6 +237,7 @@
 				33C6BCE819F2052600DFBCEB /* ServerPreMain.m in Sources */,
 				33FA778119CABCF600D5C113 /* main.m in Sources */,
 				335C359319D17C1A004CD23C /* TimeMine.m in Sources */,
+				3347511019F8D353003173D5 /* KSMessenger.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
