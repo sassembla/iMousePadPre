@@ -16,8 +16,8 @@
 
 - (id) init {
     if (self = [super init]) {
-        [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 14:27:22" withLimitSec:100000 withComment:@"サーバ側が落ちて切断されたときの受け取りが無い、気がする。"];
-        [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 14:27:25" withLimitSec:100000 withComment:@"接続リトライ系の機構が必要。"];
+        [TimeMine setTimeMineLocalizedFormat:@"2014/10/23 18:40:12" withLimitSec:100000 withComment:@"サーバ側が落ちて切断されたときの受け取りが無い、気がする。"];
+        [TimeMine setTimeMineLocalizedFormat:@"2014/10/23 18:40:15" withLimitSec:100000 withComment:@"接続リトライ系の機構が必要。"];
         
         messenger = [[KSMessenger alloc] initWithBodyID:self withSelector:@selector(receiver:) withName:MESSENGER_BONJOURCONTROLLER];
         [messenger connectParent:MESSENGER_MAINVIEWCONTROLLER];

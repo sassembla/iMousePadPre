@@ -166,7 +166,8 @@ typedef struct MouseButtonsData MouseButtonsData;
         case BONJOUR_MESSAGE_CONNECTED:{
             NSLog(@"BONJOUR_MESSAGE_CONNECTED!!!");
             NSString *connectedServerName = paramsDict[@"connectedServerName"];
-            [_indicatorButton setTitle:connectedServerName forState:UIControlStateNormal];
+            NSLog(@"connectedServerName %@", connectedServerName);
+            [_indicatorButton setTitle:@"aawwwaaaaaaaaa" forState:UIControlStateNormal];
             [_indicatorCircle setHidden:YES];
             
             // disappear message.

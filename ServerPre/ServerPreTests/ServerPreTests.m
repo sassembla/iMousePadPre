@@ -35,7 +35,7 @@ AppDelegate *appDel;
  キーの入力
  */
 - (void) testKeyEntered {
-    [appDel setState:BONJOUR_RECEIVER_ACCEPTED_IOS];
+    [appDel setState:BONJOUR_RECEIVER_ACCEPTED];
     
     CGPoint point;
     point.x = 100;

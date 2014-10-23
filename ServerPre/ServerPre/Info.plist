@@ -32,5 +32,7 @@
 	<true/>
 	<key>LSBackgroundOnly</key>
 	<true/>
+	<key>NSUserNotificationAlertStyle</key>
+	<string>banner</string>
 </dict>
 </plist>

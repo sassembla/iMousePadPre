@@ -45,7 +45,8 @@ typedef NS_ENUM(Byte, MOUSE_INPUT_EVENT) {
 };
 
 typedef NS_ENUM(int, MESSAGE) {
-    MESSAGE_HEARTBEAT
+    MESSAGE_HEARTBEAT,
+    MESSAGE_REPUBLISH
 };
 
 NSSocketPort *bonjourSocket;
@@ -68,6 +69,8 @@ NSMutableDictionary *screenInfo;
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     NSLog(@"boot!");
     
+    [self setState:BONJOUR_RECEIVER_LAUNCHED];
+    
     messenger = [[KSMessenger alloc]initWithBodyID:self withSelector:@selector(receiver:) withName:@"MASTER"];
     [messenger callMyself:MESSAGE_HEARTBEAT, nil];
     
@@ -87,14 +90,22 @@ NSMutableDictionary *screenInfo;
 }
 
 - (void) receiver:(NSNotification *)notif {
-    NSLog(@"start!");
+
     switch ([messenger execFrom:[messenger myName] viaNotification:notif]) {
         case MESSAGE_HEARTBEAT:
             
             switch (state) {
+                case BONJOUR_RECEIVER_PUBLISHING:
+                    break;
+                case BONJOUR_RECEIVER_PUBLISHED:
+//                    NSLog(@"ここがあんまりにも長いと、定期的に再起動したくなる。んだけど、そういうわけにも行かない。 notif押したら再起動をかけよう。");
+                    break;
                 case BONJOUR_RECEIVER_CLOSING:{
+                    NSLog(@"detect closing.");
                     [self setState:BONJOUR_RECEIVER_CLOSED];
-                    [self resetBonjourService];
+                    [messenger callMyself:MESSAGE_REPUBLISH,
+                     [messenger withDelay:3.0f],
+                     nil];
                     break;
                 }
                     
@@ -104,25 +115,32 @@ NSMutableDictionary *screenInfo;
             
             [messenger callMyself:MESSAGE_HEARTBEAT, [messenger withDelay:1.0f], nil];
             break;
+            
+        case MESSAGE_REPUBLISH:
+            NSLog(@"republish.");
+            [self publishBonjourService];
+            break;
     }
 }
 
 
 
-
-- (void) resetBonjourService {
-    bonjourSocket = nil;
-    
+/**
+ Bonjourの切断を行う
+ */
+- (void) disconnectBonjourService {
     bonjourService.delegate = nil;
     [bonjourService removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
     [bonjourService stop];
     
     bonjourService = nil;
     
-    [self publishBonjourService];
+    bonjourSocket = nil;
 }
 
-
+/**
+ Bonjourの発効を行う
+ */
 - (void) publishBonjourService {
     /*
      bonjourSocketを初期化する。
@@ -154,6 +172,7 @@ NSMutableDictionary *screenInfo;
         bonjourService.delegate = self;
         [bonjourService scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
         [bonjourService publish];
+        [self setState:BONJOUR_RECEIVER_PUBLISHING];
     } else {
         [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_OPEN_BONJOUR withTitle:@"server failed" message:@"failed to locate bonjour network. reboot?"];
     }
@@ -170,8 +189,9 @@ NSMutableDictionary *screenInfo;
  */
 - (void) notifyToUserWithStatus:(int)status withTitle:(NSString *)title message:(NSString *)message {
     NSUserNotification * newUserNotification = [NSUserNotification new];
-    newUserNotification.actionButtonTitle = [[NSString alloc]initWithFormat:@"%d", status];
     newUserNotification.title = @"mouseServer";
+    newUserNotification.actionButtonTitle = [[NSString alloc]initWithFormat:@"%d", status];
+    newUserNotification.hasActionButton = NO;
     newUserNotification.subtitle = title;
     newUserNotification.informativeText = message;
     
@@ -182,17 +202,21 @@ NSMutableDictionary *screenInfo;
  Macの通知センターのデリゲート
  */
 // Sent to the delegate when a notification delivery date has arrived. At this time, the notification has either been presented to the user or the notification center has decided not to present it because your application was already frontmost.
-- (void)userNotificationCenter:(NSUserNotificationCenter *)center didDeliverNotification:(NSUserNotification *)notification {
-    // notificationが表示されたらここにくる
-}
+//- (void)userNotificationCenter:(NSUserNotificationCenter *)center didDeliverNotification:(NSUserNotification *)notification {}
 
 
 // Sent to the delegate when a user clicks on a notification in the notification center. This would be a good time to take action in response to user interacting with a specific notification.
 // Important: If want to take an action when your application is launched as a result of a user clicking on a notification, be sure to implement the applicationDidFinishLaunching: method on your NSApplicationDelegate. The notification parameter to that method has a userInfo dictionary, and that dictionary has the NSApplicationLaunchUserNotificationKey key. The value of that key is the NSUserNotification that caused the application to launch. The NSUserNotification is delivered to the NSApplication delegate because that message will be sent before your application has a chance to set a delegate for the NSUserNotificationCenter.
+
+/**
+ notificationがタッチされた場合の挙動
+ */
 - (void)userNotificationCenter:(NSUserNotificationCenter *)center didActivateNotification:(NSUserNotification *)notification {
     int status = [notification.actionButtonTitle intValue];
     switch (status) {
-        
+        case BONJOUR_RECEIVER_LAUNCHED:
+            break;
+            
         case BONJOUR_RECEIVER_FAILED_OPEN_PORT:
         case BONJOUR_RECEIVER_FAILED_OPEN_BONJOUR:
         case BONJOUR_RECEIVER_FAILED_PUBLISH_BONJOUR:{
@@ -200,7 +224,17 @@ NSMutableDictionary *screenInfo;
             break;
         }
             
-        case BONJOUR_RECEIVER_ACCEPTED_IOS:
+        case BONJOUR_RECEIVER_PUBLISHING:
+            break;
+            
+        case BONJOUR_RECEIVER_PUBLISHED:
+            [self disconnectBonjourService];
+            [self publishBonjourService];
+            break;
+            
+        
+
+        case BONJOUR_RECEIVER_ACCEPTED:
 //            ignore
             break;
             
@@ -213,7 +247,6 @@ NSMutableDictionary *screenInfo;
 
 // Sent to the delegate when the Notification Center has decided not to present your notification, for example when your application is front most. If you want the notification to be displayed anyway, return YES.
 - (BOOL)userNotificationCenter:(NSUserNotificationCenter *)center shouldPresentNotification:(NSUserNotification *)notification {
-//    [TimeMine setTimeMineLocalizedFormat:@"2014/10/16 23:33:39" withLimitSec:0 withComment:@"shouldPresentNotification 通知系なのでいらないっぽい。"];
     return true;
 }
 
@@ -226,15 +259,12 @@ NSMutableDictionary *screenInfo;
  */
 /* Sent to the NSNetService instance's delegate prior to advertising the service on the network. If for some reason the service cannot be published, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotPublish: method.
  */
-- (void)netServiceWillPublish:(NSNetService *)sender {
-    NSLog(@"netServiceWillPublish! なんだけど、これの2度目ができないような気がする。同じport指してるからかな。 %@", sender);
-}
+//- (void)netServiceWillPublish:(NSNetService *)sender {}
 
 
 /* Sent to the NSNetService instance's delegate when the publication of the instance is complete and successful.
  */
 - (void)netServiceDidPublish:(NSNetService *)sender {
-    NSLog(@"netServiceDidPublish!!!!!!! %@", sender);
     
     bonjourSocketHandle = [[NSFileHandle alloc] initWithFileDescriptor:[bonjourSocket socket] closeOnDealloc:YES];
     if (bonjourSocketHandle) {
@@ -244,13 +274,14 @@ NSMutableDictionary *screenInfo;
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(acceptConnection:) name:NSFileHandleConnectionAcceptedNotification object:bonjourSocketHandle];
         
         [bonjourSocketHandle acceptConnectionInBackgroundAndNotify];
+        
+        [self setState:BONJOUR_RECEIVER_PUBLISHED];
+        
+        [self notifyToUserWithStatus:BONJOUR_RECEIVER_PUBLISHED withTitle:@"bonjour published." message:@"need reboot? touch this."];
     } else {
         [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_PUBLISH_BONJOUR withTitle:@"server failed" message:@"failed to publish bonjour network. reboot?"];
     }
     
-    
-//    試しにここでresetしたら、繰り返せた。
-//    [self resetBonjourService];
 }
 
 
@@ -259,7 +290,7 @@ NSMutableDictionary *screenInfo;
  */
 - (void)netService:(NSNetService *)sender didNotPublish:(NSDictionary *)errorDict {
     NSLog(@"didNotPublish! errorDict%@", errorDict);
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/23 14:15:06" withLimitSec:10000 withComment:@"publishに失敗したケース、通知。原因なんだろうな。wifi切れてても行けるはずなんだけど。"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/23 14:15:06" withLimitSec:0 withComment:@"publishに失敗したケース、通知。原因なんだろうな。wifi切れてても行けるはずなんだけど。"];
 }
 
 /* Sent to the NSNetService instance's delegate prior to resolving a service on the network. If for some reason the resolution cannot occur, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotResolve: method.
@@ -315,16 +346,26 @@ NSMutableDictionary *screenInfo;
  クライアントのconnectingを受け取った「後」
  */
 - (void) acceptConnection:(NSNotification *)notif {
-    [self setState:BONJOUR_RECEIVER_ACCEPTED_IOS];
+    NSFileHandle *connectedHandle = [[notif userInfo] objectForKey:NSFileHandleNotificationFileHandleItem];
+    
+    if (connectedHandle) {
+        NSLog(@"valid handle access");
+    } else {
+        NSLog(@"invalid handle access");
+        return;
+    }
+    
+    
+    [self setState:BONJOUR_RECEIVER_ACCEPTED];
     
     /*
      通知
      */
     NSDate * nowDate = [NSDate date];//現在のシステム時間
     NSString *nowDateStr = [[NSString alloc]initWithFormat:@"time:%@", nowDate];
-    [self notifyToUserWithStatus:BONJOUR_RECEIVER_ACCEPTED_IOS withTitle:@"device connected" message:nowDateStr];
+    [self notifyToUserWithStatus:BONJOUR_RECEIVER_ACCEPTED withTitle:@"device connected" message:nowDateStr];
     
-    NSLog(@"acceptConnection!");
+
     /*
         定義済みのpointerを使わないと、deallocされてしまう。
      */
@@ -337,19 +378,19 @@ NSMutableDictionary *screenInfo;
          detect disconnected
          */
         if ([data length] == 0) {
-            
             //このコードで、再接続時の100%を防げる。
             fileHandle.writeabilityHandler = nil;
             fileHandle.readabilityHandler = nil;
             NSLog(@"disconnect");
             
             [[NSNotificationCenter defaultCenter] removeObserver:self name:NSFileHandleConnectionAcceptedNotification object:fileHandle];
+            [self disconnectBonjourService];
             
             [self setState:BONJOUR_RECEIVER_CLOSING];
             return;
         }
         
-        NSLog(@"doooo");
+        [self execute:data];
     };
 }
 
@@ -376,7 +417,7 @@ CGPoint beforeInputPoint;
 
 - (void) execute:(NSData *)data {
     switch (state) {
-        case BONJOUR_RECEIVER_ACCEPTED_IOS:{
+        case BONJOUR_RECEIVER_ACCEPTED:{
             /*
              マウス入力とキー入力の解析と再現を行う。
              */
