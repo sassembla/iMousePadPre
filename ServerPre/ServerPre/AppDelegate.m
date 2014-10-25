@@ -44,6 +44,8 @@ typedef NS_ENUM(Byte, MOUSE_INPUT_EVENT) {
     MOUSE_WHEEL_DOWN
 };
 
+unsigned long sizeOfMousePadData;
+
 typedef NS_ENUM(int, MESSAGE) {
     MESSAGE_HEARTBEAT,
     MESSAGE_REPUBLISH
@@ -190,11 +192,20 @@ NSMutableDictionary *screenInfo;
     newUserNotification.subtitle = title;
     newUserNotification.informativeText = message;
     
-    newUserNotification.identifier = [NSString stringWithFormat:@"%d", status];
+    NSDate * nowDate = [NSDate date];//現在のシステム時間
+    NSString *nowDateStr = [[NSString alloc]initWithFormat:@"time:%@", nowDate];
+    
+    // set identity.
+    newUserNotification.identifier = nowDateStr;
+    
+    newUserNotification.actionButtonTitle = [NSString stringWithFormat:@"%d", status];
+    
 //    NSString *path = @"";
 //    newUserNotification.contentImage = [[NSImage alloc] initWithContentsOfFile: path];
     
-    if (receive) newUserNotification.hasReplyButton = YES;
+    if (receive) {
+        newUserNotification.hasReplyButton = YES;
+    }
     
     [notifier deliverNotification:newUserNotification];
 }
@@ -213,11 +224,9 @@ NSMutableDictionary *screenInfo;
  notificationがタッチされた場合の挙動
  */
 - (void)userNotificationCenter:(NSUserNotificationCenter *)center didActivateNotification:(NSUserNotification *)notification {
-    NSLog(@"notification %@", notification);
-    NSString *notificationIdentity = notification.identifier;
-    NSLog(@"notificationIdentity %@", notificationIdentity);
+    int notificationStatus = [notification.actionButtonTitle intValue];
     
-    switch ([notificationIdentity intValue]) {
+    switch (notificationStatus) {
         case BONJOUR_RECEIVER_LAUNCHED:
             break;
             
@@ -232,21 +241,39 @@ NSMutableDictionary *screenInfo;
             break;
             
         case BONJOUR_RECEIVER_PUBLISHED:
-            [self disconnectBonjourService];
-            [self publishBonjourService];
+            [self notifyToUserWithStatus:BONJOUR_RECEIVER_CONTROL withTitle:@"input control" message:@"reboot(r) or quit(q)" isReceiveInput:YES];
             break;
             
-        
 
         case BONJOUR_RECEIVER_ACCEPTED:
-//            ignore
-            NSLog(@"ignored");
+            // do nothing
             break;
             
-        default:
-            NSLog(@"status %@", notificationIdentity);
+        case BONJOUR_RECEIVER_CONTROL:{
+            if (notification.response) {
+                NSString *command = [notification.response string];
+                
+                if ([command hasPrefix:@"reboot"] || [command hasPrefix:@"r"]) {
+                    [self disconnectBonjourService];
+                    [self publishBonjourService];
+                }
+                
+                if ([command hasPrefix:@"quit"] || [command hasPrefix:@"q"]) {
+                    [self disconnectBonjourService];
+                    [NSApp terminate:nil];
+                }
+                
+            } else {
+                // do nothing with no command.
+            }
+
+            break;
+        }
+            
+        default:{
             [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 20:53:26" withLimitSec:0 withComment:@"未知のコード"];
             break;
+        }
     }
 }
 
@@ -268,6 +295,7 @@ NSMutableDictionary *screenInfo;
 
 
 /* Sent to the NSNetService instance's delegate when the publication of the instance is complete and successful.
+ 
  */
 - (void)netServiceDidPublish:(NSNetService *)sender {
     
@@ -282,7 +310,7 @@ NSMutableDictionary *screenInfo;
         
         [self setState:BONJOUR_RECEIVER_PUBLISHED];
         
-        [self notifyToUserWithStatus:BONJOUR_RECEIVER_PUBLISHED withTitle:@"bonjour published." message:@"need control? tap this." isReceiveInput:NO];
+        [self notifyToUserWithStatus:BONJOUR_RECEIVER_PUBLISHED withTitle:@"bonjour published. keep running MousePad." message:@"need control? tap this." isReceiveInput:NO];
     } else {
         [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_PUBLISH_BONJOUR withTitle:@"server failed" message:@"failed to publish bonjour network." isReceiveInput:NO];
     }
@@ -293,30 +321,21 @@ NSMutableDictionary *screenInfo;
 
 /* Sent to the NSNetService instance's delegate when an error in publishing the instance occurs. The error dictionary will contain two key/value pairs representing the error domain and code (see the NSNetServicesError enumeration above for error code constants). It is possible for an error to occur after a successful publication.
  */
-- (void)netService:(NSNetService *)sender didNotPublish:(NSDictionary *)errorDict {
-    NSLog(@"didNotPublish! errorDict%@", errorDict);
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/23 14:15:06" withLimitSec:0 withComment:@"publishに失敗したケース、通知。原因なんだろうな。wifi切れてても行けるはずなんだけど。"];
-}
+//- (void)netService:(NSNetService *)sender didNotPublish:(NSDictionary *)errorDict {}
 
 /* Sent to the NSNetService instance's delegate prior to resolving a service on the network. If for some reason the resolution cannot occur, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotResolve: method.
  */
-- (void)netServiceWillResolve:(NSNetService *)sender {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/16 23:33:11" withLimitSec:0 withComment:@"netServiceWillResolve"];
-}
+//- (void)netServiceWillResolve:(NSNetService *)sender {}
 
 
 /* Sent to the NSNetService instance's delegate when one or more addresses have been resolved for an NSNetService instance. Some NSNetService methods will return different results before and after a successful resolution. An NSNetService instance may get resolved more than once; truly robust clients may wish to resolve again after an error, or to resolve more than once.
  */
-- (void)netServiceDidResolveAddress:(NSNetService *)sender {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/16 23:32:59" withLimitSec:0 withComment:@"netServiceDidResolveAddress"];
-}
+//- (void)netServiceDidResolveAddress:(NSNetService *)sender {}
 
 
 /* Sent to the NSNetService instance's delegate when an error in resolving the instance occurs. The error dictionary will contain two key/value pairs representing the error domain and code (see the NSNetServicesError enumeration above for error code constants).
  */
-- (void)netService:(NSNetService *)sender didNotResolve:(NSDictionary *)errorDict {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/16 23:32:37" withLimitSec:0 withComment:@"didNotResolve"];
-}
+//- (void)netService:(NSNetService *)sender didNotResolve:(NSDictionary *)errorDict {}
 
 
 /* Sent to the NSNetService instance's delegate when the instance's previously running publication or resolution request has stopped.
@@ -326,9 +345,7 @@ NSMutableDictionary *screenInfo;
 
 /* Sent to the NSNetService instance's delegate when the instance is being monitored and the instance's TXT record has been updated. The new record is contained in the data parameter.
  */
-- (void)netService:(NSNetService *)sender didUpdateTXTRecordData:(NSData *)data {
-    NSLog(@"didUpdateTXTRecordData");
-}
+//- (void)netService:(NSNetService *)sender didUpdateTXTRecordData:(NSData *)data {}
 
 
 
@@ -354,7 +371,7 @@ NSMutableDictionary *screenInfo;
     NSFileHandle *connectedHandle = [[notif userInfo] objectForKey:NSFileHandleNotificationFileHandleItem];
     
     if (connectedHandle) {
-        NSLog(@"valid handle access");
+        NSLog(@"valid handle access:%@", connectedHandle.description);
     } else {
         NSLog(@"invalid handle access");
         return;
@@ -366,13 +383,21 @@ NSMutableDictionary *screenInfo;
     /*
      通知
      */
-    NSDate * nowDate = [NSDate date];//現在のシステム時間
-    NSString *nowDateStr = [[NSString alloc]initWithFormat:@"time:%@", nowDate];
-    [self notifyToUserWithStatus:BONJOUR_RECEIVER_ACCEPTED withTitle:@"device connected" message:nowDateStr isReceiveInput:NO];
+    [self notifyToUserWithStatus:BONJOUR_RECEIVER_ACCEPTED withTitle:@"device connected" message:@"" isReceiveInput:NO];
     
-
+    
     /*
-        定義済みのpointerを使わないと、deallocされてしまう。
+     マウスの位置を画面の中心に
+     */
+    [self setMousePointToCenter];
+    
+    /*
+     今後やり取りするデータサイズを取得
+     */
+    sizeOfMousePadData = sizeof(MousePadData);
+    
+    /*
+     定義済みのpointerを使わないと、deallocされてしまう。
      */
     bonjourAcceptedHandle = [[notif userInfo] objectForKey:NSFileHandleNotificationFileHandleItem];
     
@@ -383,10 +408,10 @@ NSMutableDictionary *screenInfo;
          detect disconnected
          */
         if ([data length] == 0) {
-            //このコードで、再接続時の100%を防げる。
+            // below code is for avoiding CPU to be 100%.
             fileHandle.writeabilityHandler = nil;
             fileHandle.readabilityHandler = nil;
-            NSLog(@"disconnect");
+            
             
             [[NSNotificationCenter defaultCenter] removeObserver:self name:NSFileHandleConnectionAcceptedNotification object:fileHandle];
             [self disconnectBonjourService];
@@ -421,37 +446,37 @@ CGPoint currentMousePoint;
 CGPoint beforeInputPoint;
 
 - (void) execute:(NSData *)data {
-    switch (state) {
-        case BONJOUR_RECEIVER_ACCEPTED:{
-            /*
-             マウス入力とキー入力の解析と再現を行う。
-             */
-            MousePadData mousePadData;
-            [data getBytes:&mousePadData length:sizeof(MousePadData)];
-            
-            /*
-             マウスの位置入力
-             */
-            CGPoint emitPoint = [self mouseUpdate:mousePadData.mousePoint withType:mousePadData.mouseEventType];
-            
-            
-            /*
-             マウスのボタン入力
-             */
-            [self mouseButtonStatusUpdate:emitPoint left:mousePadData.left right:mousePadData.right andCenter:mousePadData.center];
-            
-            
-            /*
-             キーの入出力
-             */
-            [self keysStatusUpdate:emitPoint
-                          keySlots:mousePadData.keySlots
-             ];
-            break;
-        }
-            
-        default:
-            break;
+    unsigned long len =[data length];
+    for (int i = 0; i < len/sizeOfMousePadData; i++) {
+        int offset = i * sizeOfMousePadData;
+        NSData *partialData = [NSData dataWithBytesNoCopy:(char *)[data bytes] + offset
+                                             length:sizeOfMousePadData
+                                       freeWhenDone:NO];
+        
+        /*
+         マウス入力とキー入力の解析と再現を行う。
+         */
+        MousePadData mousePadData;
+        [partialData getBytes:&mousePadData length:sizeof(MousePadData)];
+        
+        /*
+         マウスの位置入力
+         */
+        CGPoint emitPoint = [self mouseUpdate:mousePadData.mousePoint withType:mousePadData.mouseEventType];
+        
+        
+        /*
+         マウスのボタン入力
+         */
+        [self mouseButtonStatusUpdate:emitPoint left:mousePadData.left right:mousePadData.right andCenter:mousePadData.center];
+        
+        
+        /*
+         キーの入出力
+         */
+        [self keysStatusUpdate:emitPoint
+                      keySlots:mousePadData.keySlots
+         ];
     }
 }
 
@@ -510,8 +535,13 @@ CGPoint beforeInputPoint;
             break;
         }
             
-        default:
+        default:{
+//            NSLog(@"保険up、これをつけるとupが効く、ということは、upが出てないか効果がない。なるほど。なんかイベントでちゃってるのでは。");
+//            CGEventRef up = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventLeftMouseUp, inputPoint, kCGMouseButtonLeft);
+//            CGEventPost(kCGHIDEventTap, up);
+//            CFRelease(up);
             break;
+        }
     }
     
     switch (right) {
@@ -697,6 +727,18 @@ CGPoint beforeInputPoint;
     return currentMousePoint;
 }
 
+/**
+ スクリーンの中心へとマウスを強制移動、アプリ内基準ポイントも移動する。
+ */
+- (void) setMousePointToCenter {
+    CGPoint screenCenter = CGPointMake(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
+    CGEventRef toCenterSet = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, screenCenter, kCGMouseButtonLeft);
+    CGEventPost(kCGHIDEventTap, toCenterSet);
+    CFRelease(toCenterSet);
+
+    currentMousePoint = screenCenter;
+    beforeInputPoint = currentMousePoint;
+}
 
 
 

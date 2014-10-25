@@ -15,8 +15,6 @@
 		330A2A2319CABBE300441A2A /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 330A2A2119CABBE300441A2A /* LaunchScreen.xib */; };
 		330A2A2F19CABBE300441A2A /* MousePadPreTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 330A2A2E19CABBE300441A2A /* MousePadPreTests.m */; };
 		332E7BCD19E194D3006884E6 /* KSMessenger.m in Sources */ = {isa = PBXBuildFile; fileRef = 332E7BCC19E194D3006884E6 /* KSMessenger.m */; };
-		332E7BD919E19D44006884E6 /* FadeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 332E7BD719E19D44006884E6 /* FadeViewController.m */; };
-		332E7BDA19E19D44006884E6 /* FadeViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 332E7BD819E19D44006884E6 /* FadeViewController.xib */; };
 		335C358419D163D5004CD23C /* TimeMine.m in Sources */ = {isa = PBXBuildFile; fileRef = 335C358319D163D5004CD23C /* TimeMine.m */; };
 		335C358819D16C86004CD23C /* KeyboardButtonManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 335C358719D16C86004CD23C /* KeyboardButtonManager.m */; };
 		335C358E19D17664004CD23C /* BonjourConnectionController.m in Sources */ = {isa = PBXBuildFile; fileRef = 335C358D19D17664004CD23C /* BonjourConnectionController.m */; };
@@ -60,9 +58,6 @@
 		332E7BCB19E194D3006884E6 /* KSMessenger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KSMessenger.h; sourceTree = "<group>"; };
 		332E7BCC19E194D3006884E6 /* KSMessenger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KSMessenger.m; sourceTree = "<group>"; };
 		332E7BD519E19B96006884E6 /* Messengers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Messengers.h; sourceTree = "<group>"; };
-		332E7BD619E19D44006884E6 /* FadeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FadeViewController.h; path = FadeView/FadeViewController.h; sourceTree = "<group>"; };
-		332E7BD719E19D44006884E6 /* FadeViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = FadeViewController.m; path = FadeView/FadeViewController.m; sourceTree = "<group>"; };
-		332E7BD819E19D44006884E6 /* FadeViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = FadeViewController.xib; path = FadeView/FadeViewController.xib; sourceTree = "<group>"; };
 		335C358219D163D5004CD23C /* TimeMine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimeMine.h; sourceTree = "<group>"; };
 		335C358319D163D5004CD23C /* TimeMine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimeMine.m; sourceTree = "<group>"; };
 		335C358619D16C86004CD23C /* KeyboardButtonManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyboardButtonManager.h; sourceTree = "<group>"; };
@@ -139,7 +134,6 @@
 				33657F4319E105D20074D782 /* KeyButton */,
 				33657F4B19E105F60074D782 /* ButtonDeleteButton */,
 				332E7BD519E19B96006884E6 /* Messengers.h */,
-				332E7BDB19E19D4F006884E6 /* FadeView */,
 			);
 			path = MousePadPre;
 			sourceTree = "<group>";
@@ -177,16 +171,6 @@
 				332E7BCC19E194D3006884E6 /* KSMessenger.m */,
 			);
 			name = Messenger;
-			sourceTree = "<group>";
-		};
-		332E7BDB19E19D4F006884E6 /* FadeView */ = {
-			isa = PBXGroup;
-			children = (
-				332E7BD619E19D44006884E6 /* FadeViewController.h */,
-				332E7BD719E19D44006884E6 /* FadeViewController.m */,
-				332E7BD819E19D44006884E6 /* FadeViewController.xib */,
-			);
-			name = FadeView;
 			sourceTree = "<group>";
 		};
 		335C358519D163DA004CD23C /* TimeAssert */ = {
@@ -324,7 +308,6 @@
 				330A2A1E19CABBE300441A2A /* Main.storyboard in Resources */,
 				330A2A2319CABBE300441A2A /* LaunchScreen.xib in Resources */,
 				330A2A2019CABBE300441A2A /* Images.xcassets in Resources */,
-				332E7BDA19E19D44006884E6 /* FadeViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -353,7 +336,6 @@
 				33FFB50A19EAEB4D006F76AE /* MouseIndicatorViewController.m in Sources */,
 				33657F4719E105F00074D782 /* ButtonDeleteButtonViewController.m in Sources */,
 				33657F3319E0F0F90074D782 /* KeyButtonViewController.m in Sources */,
-				332E7BD919E19D44006884E6 /* FadeViewController.m in Sources */,
 				330A2A1519CABBE300441A2A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

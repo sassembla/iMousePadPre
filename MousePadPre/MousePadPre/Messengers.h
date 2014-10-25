@@ -16,6 +16,4 @@
 
 #define MESSENGER_BONJOURCONTROLLER     (@"bonjourController")
 
-#define MESSENGER_FADEVIEWCONTROLLER    (@"fadeViewController")
-
 #endif

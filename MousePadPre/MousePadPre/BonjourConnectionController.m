@@ -18,7 +18,6 @@
 
 - (id) init {
     if (self = [super init]) {
-        [TimeMine setTimeMineLocalizedFormat:@"2014/10/25 10:38:36" withLimitSec:100000 withComment:@"デスクトップでフォルダを左クリックがはずれない現象がある。ドラッグイベントが流れっぱなしになるとかそういうのがありそう。"];
         
         
         messenger = [[KSMessenger alloc] initWithBodyID:self withSelector:@selector(receiver:) withName:MESSENGER_BONJOURCONTROLLER];
@@ -32,6 +31,7 @@
 }
 
 - (void) receiver:(NSNotification *)notif {
+
     switch ([messenger execFrom:[messenger myName] viaNotification:notif]) {
         case BONJOUR_MESSAGE_HEARTBEAT:
             
@@ -41,7 +41,7 @@
                     break;
                     
                 case STATE_BONJOUR_CONNECTING_LONG:
-                    NSLog(@"force reload");
+//                    NSLog(@"force reload");
                     [self resetSearchBonjourNetwork];
                     break;
                 default:
@@ -71,8 +71,10 @@ int bonjourState;
 
 typedef NS_ENUM(int, BONJOUR_STATE) {
     STATE_BONJOUR_SEARCHING,
+    STATE_BONJOUR_SEARCHED,
     STATE_BONJOUR_CONNECTING,
     STATE_BONJOUR_CONNECTING_LONG,
+    
     STATE_BONJOUR_CONNECTED,
     STATE_BONJOUR_DISCONNECTED
 };
@@ -160,7 +162,7 @@ NSOutputStream *bonjourOutputStream;
     
     [messenger callParent:BONJOUR_MESSAGE_SEARCHED, nil];
     
-    bonjourState = STATE_BONJOUR_CONNECTING;
+    bonjourState = STATE_BONJOUR_SEARCHED;
     
     bonjourService = [[NSNetService alloc] initWithDomain:[aNetService domain] type:[aNetService type] name:[aNetService name]];
     
@@ -201,6 +203,13 @@ NSOutputStream *bonjourOutputStream;
  */
 - (void)netServiceDidResolveAddress:(NSNetService *)sender {
     NSString *message = [NSString stringWithFormat:@"netServiceDidResolveAddress sender port:%ld", (long)sender.port];
+
+    if (bonjourState == STATE_BONJOUR_CONNECTING) {
+        NSLog(@"bonjourState がconnectedな状態で接続完了が来たけどぶっちゃけいらなくない？ %@", message);
+        return;
+    }
+    
+    bonjourState = STATE_BONJOUR_CONNECTING;
     
     [messenger callParent:BONJOUR_MESSAGE_CONNECTING,
      [messenger tag:@"message" val:message],
@@ -266,8 +275,8 @@ NSOutputStream *bonjourOutputStream;
  */
 - (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode {
     if ((eventCode & NSStreamEventOpenCompleted) != 0) {
-        [messenger callParent:BONJOUR_MESSAGE_CONNECTED, [messenger tag:@"connectedServerName" val:@"mousePadServer"], nil];
         bonjourState = STATE_BONJOUR_CONNECTED;
+        [messenger callParent:BONJOUR_MESSAGE_CONNECTED, [messenger tag:@"connectedServerName" val:@"mousePadServer"], nil];
     }
     
     if ((eventCode & NSStreamEventHasBytesAvailable) != 0) {
@@ -281,25 +290,20 @@ NSOutputStream *bonjourOutputStream;
     
     if ((eventCode & NSStreamEventErrorOccurred) != 0) {
         NSError *theError = [aStream streamError];
-        NSLog(@"NSStreamEventErrorOccurred theError%@", theError);
         
-//        NSAlert *theAlert = [[NSAlert alloc] init];
-//        [theAlert setMessageText:@"Error reading stream!"];
-//        [theAlert setInformativeText:[NSString stringWithFormat:@"Error %i: %@",
-//                                      [theError code], [theError localizedDescription]]];
-//        [theAlert addButtonWithTitle:@"OK"];
-//        [theAlert beginSheetModalForWindow:[NSApp mainWindow]
-//                             modalDelegate:self
-//                            didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:)
-//                               contextInfo:nil];
-//        [stream close];
-//        [stream release];
-        [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"NSStreamEventErrorOccurred"], nil];
+        bonjourState = STATE_BONJOUR_DISCONNECTED;
+        [messenger callParent:BONJOUR_MESSAGE_DISCONNECTED,
+         [messenger tag:@"disconnectedServerName" val:@"mousePadServer"],
+         [messenger tag:@"reason" val:[NSString stringWithFormat:@"NSStreamEventErrorOccurred %@", theError]],
+         nil];
     }
     
     if ((eventCode & NSStreamEventEndEncountered) != 0) {
         bonjourState = STATE_BONJOUR_DISCONNECTED;
-        [messenger callParent:BONJOUR_MESSAGE_DISCONNECTED, [messenger tag:@"disconnectedServerName" val:@"mousePadServer"], nil];
+        [messenger callParent:BONJOUR_MESSAGE_DISCONNECTED,
+         [messenger tag:@"disconnectedServerName" val:@"mousePadServer"],
+         [messenger tag:@"reason" val:@"NSStreamEventEndEncountered"],
+         nil];
     }
     
 }

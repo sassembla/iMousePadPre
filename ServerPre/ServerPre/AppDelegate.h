@@ -40,6 +40,8 @@ typedef NS_ENUM(int, BONJOUR_RECEIVER_STATE) {
     BONJOUR_RECEIVER_CLOSING,
     BONJOUR_RECEIVER_CLOSED,
     
+    BONJOUR_RECEIVER_CONTROL
+    
 };
 
 @interface AppDelegate : NSObject <NSApplicationDelegate, NSPortDelegate, NSNetServiceDelegate, NSUserNotificationCenterDelegate> {

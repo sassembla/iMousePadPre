@@ -16,7 +16,6 @@
 
 #import "Messengers.h"
 
-#import "FadeViewController.h"
 
 @interface ViewController ()
 @end
@@ -99,10 +98,6 @@ typedef struct MouseButtonsData MouseButtonsData;
         default:
             break;
     }
-    
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/25 10:39:00" withLimitSec:100000 withComment:@"後回しのフェードビュー、最終的には操作可能になったら出す"];
-//    FadeViewController *fadeViewCont = [[FadeViewController alloc] initFadeViewWithBarseView:self.view.frame];
-//    [self.view addSubview:fadeViewCont.view];
 }
 
 - (IBAction)reconnect:(id)sender {
@@ -137,7 +132,6 @@ typedef struct MouseButtonsData MouseButtonsData;
             [_indicatorButton setTitle:@"mousepad server connection searching..." forState:UIControlStateNormal];
             [_indicatorCircle setHidden:NO];
             
-            [messenger call:MESSENGER_FADEVIEWCONTROLLER withExec:FADEOUT_MESSAGE_FADEIN, nil];
             [_infoMessage setText:@""];
             break;
         }
@@ -161,20 +155,19 @@ typedef struct MouseButtonsData MouseButtonsData;
             
         case BONJOUR_MESSAGE_CONNECTED:{
             NSString *connectedServerName = paramsDict[@"connectedServerName"];
-            NSString *displayConnectedServerName = [NSString stringWithFormat:@"connected:%@", connectedServerName];
-            [_indicatorButton setTitle:displayConnectedServerName forState:UIControlStateNormal];
+            [_indicatorButton setTitle:connectedServerName forState:UIControlStateNormal];
             [_indicatorCircle setHidden:YES];
             
             // erase message.
             [_infoMessage setText:@""];
             
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:displayConnectedServerName
+            NSString *connectedMessage = [NSString stringWithFormat:@"MousePad connected to %@", connectedServerName];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:connectedMessage
                                                             message:@"ok"
                                                            delegate:nil
                                                   cancelButtonTitle:@"OK"
                                                   otherButtonTitles:nil];
             [alert show];
-            [messenger call:MESSENGER_FADEVIEWCONTROLLER withExec:FADEOUT_MESSAGE_FADEOUT, nil];
             
             [self resetInputParameter];
             
@@ -187,11 +180,13 @@ typedef struct MouseButtonsData MouseButtonsData;
         }
     
         case BONJOUR_MESSAGE_DISCONNECTED:{
-            [_indicatorButton setTitle:@"disconnected" forState:UIControlStateNormal];
+            NSString *disconnectedServerName = paramsDict[@"disconnectedServerName"];
+            NSString *disconnectedServerInfo = [NSString stringWithFormat:@"disconnected from %@", disconnectedServerName];
+            [_indicatorButton setTitle:disconnectedServerInfo forState:UIControlStateNormal];
             [_indicatorCircle setHidden:YES];
             
-            NSString *message = paramsDict[@"disconnectedServerName"];
-            [_infoMessage setText:message];
+            NSString *disconnectedReason = paramsDict[@"reason"];
+            [_infoMessage setText:disconnectedReason];
             break;
         }
             
