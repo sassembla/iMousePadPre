@@ -12,15 +12,19 @@
 
 #import "Messengers.h"
 
+#define INTERVAL_HEARTBEAT (3.0f)
+
 @implementation BonjourConnectionController
 
 - (id) init {
     if (self = [super init]) {
-        [TimeMine setTimeMineLocalizedFormat:@"2014/10/23 18:40:12" withLimitSec:100000 withComment:@"サーバ側が落ちて切断されたときの受け取りが無い、気がする。"];
-        [TimeMine setTimeMineLocalizedFormat:@"2014/10/23 18:40:15" withLimitSec:100000 withComment:@"接続リトライ系の機構が必要。"];
+        [TimeMine setTimeMineLocalizedFormat:@"2014/10/25 10:38:36" withLimitSec:100000 withComment:@"デスクトップでフォルダを左クリックがはずれない現象がある。ドラッグイベントが流れっぱなしになるとかそういうのがありそう。"];
+        
         
         messenger = [[KSMessenger alloc] initWithBodyID:self withSelector:@selector(receiver:) withName:MESSENGER_BONJOURCONTROLLER];
         [messenger connectParent:MESSENGER_MAINVIEWCONTROLLER];
+        
+        [messenger callMyself:BONJOUR_MESSAGE_HEARTBEAT, nil];
         
         [self searchBonjourNetwork];
     }
@@ -28,7 +32,31 @@
 }
 
 - (void) receiver:(NSNotification *)notif {
-    
+    switch ([messenger execFrom:[messenger myName] viaNotification:notif]) {
+        case BONJOUR_MESSAGE_HEARTBEAT:
+            
+            switch (bonjourState) {
+                case STATE_BONJOUR_CONNECTING:
+                    bonjourState = STATE_BONJOUR_CONNECTING_LONG;
+                    break;
+                    
+                case STATE_BONJOUR_CONNECTING_LONG:
+                    NSLog(@"force reload");
+                    [self resetSearchBonjourNetwork];
+                    break;
+                default:
+                    break;
+            }
+            
+            
+            [messenger callMyself:BONJOUR_MESSAGE_HEARTBEAT,
+             [messenger withDelay:INTERVAL_HEARTBEAT],
+             nil];
+            break;
+            
+        default:
+            break;
+    }
 }
 
 
@@ -44,6 +72,7 @@ int bonjourState;
 typedef NS_ENUM(int, BONJOUR_STATE) {
     STATE_BONJOUR_SEARCHING,
     STATE_BONJOUR_CONNECTING,
+    STATE_BONJOUR_CONNECTING_LONG,
     STATE_BONJOUR_CONNECTED,
     STATE_BONJOUR_DISCONNECTED
 };
@@ -122,19 +151,14 @@ NSOutputStream *bonjourOutputStream;
  */
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didRemoveService:(NSNetService *)aNetService moreComing:(BOOL)moreComing {
     bonjourState = STATE_BONJOUR_DISCONNECTED;
-    
-    [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"netServiceBrowser didRemoveService"], nil];
+    [messenger callParent:BONJOUR_MESSAGE_DISCONNECTED, [messenger tag:@"disconnectedServerName" val:@"mousePadServer"], nil];
 }
 
 /* Sent to the NSNetServiceBrowser instance's delegate for each service discovered. If there are more services, moreComing will be YES. If for some reason handling discovered services requires significant processing, accumulating services until moreComing is NO and then doing the processing in bulk fashion may be desirable.
  */
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didFindService:(NSNetService *)aNetService moreComing:(BOOL)moreComing {
-    NSLog(@"すでにサービス見つけてる aNetServiceBrowser:%@ aNetService:%@ moreComing:%d", aNetServiceBrowser, aNetService, moreComing);
     
-    NSString *connectedServerName = @"適当な名前";
-    [messenger callParent:BONJOUR_MESSAGE_SEARCHED,
-     [messenger tag:@"connectedServerName" val:connectedServerName],
-     nil];
+    [messenger callParent:BONJOUR_MESSAGE_SEARCHED, nil];
     
     bonjourState = STATE_BONJOUR_CONNECTING;
     
@@ -156,15 +180,11 @@ NSOutputStream *bonjourOutputStream;
  */
 /* Sent to the NSNetService instance's delegate prior to advertising the service on the network. If for some reason the service cannot be published, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotPublish: method.
  */
-- (void)netServiceWillPublish:(NSNetService *)sender {
-    NSLog(@"???");
-}
+- (void)netServiceWillPublish:(NSNetService *)sender {}
 
 /* Sent to the NSNetService instance's delegate when the publication of the instance is complete and successful.
  */
-- (void)netServiceDidPublish:(NSNetService *)sender {
-    NSLog(@"netServiceDidPublish %@", sender);
-}
+- (void)netServiceDidPublish:(NSNetService *)sender {}
 
 /* Sent to the NSNetService instance's delegate when an error in publishing the instance occurs. The error dictionary will contain two key/value pairs representing the error domain and code (see the NSNetServicesError enumeration above for error code constants). It is possible for an error to occur after a successful publication.
  */
@@ -174,17 +194,18 @@ NSOutputStream *bonjourOutputStream;
 
 /* Sent to the NSNetService instance's delegate prior to resolving a service on the network. If for some reason the resolution cannot occur, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotResolve: method.
  */
-- (void)netServiceWillResolve:(NSNetService *)sender {
-    NSLog(@"netServiceWillResolve %@", sender);
-}
+- (void)netServiceWillResolve:(NSNetService *)sender {}
 
 
 /* Sent to the NSNetService instance's delegate when one or more addresses have been resolved for an NSNetService instance. Some NSNetService methods will return different results before and after a successful resolution. An NSNetService instance may get resolved more than once; truly robust clients may wish to resolve again after an error, or to resolve more than once.
  */
 - (void)netServiceDidResolveAddress:(NSNetService *)sender {
-    NSLog(@"netServiceDidResolveAddress sender port:%ld", (long)sender.port);
+    NSString *message = [NSString stringWithFormat:@"netServiceDidResolveAddress sender port:%ld", (long)sender.port];
     
-    [messenger callParent:BONJOUR_MESSAGE_CONNECTING, nil];
+    [messenger callParent:BONJOUR_MESSAGE_CONNECTING,
+     [messenger tag:@"message" val:message],
+     nil];
+    
     NSInputStream *inputStream;
     
     bool result = [sender getInputStream:&inputStream outputStream:&bonjourOutputStream];
@@ -244,17 +265,12 @@ NSOutputStream *bonjourOutputStream;
  NSStreamEventEndEncountered = 1UL << 4
  */
 - (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode {
-    
     if ((eventCode & NSStreamEventOpenCompleted) != 0) {
-        [TimeMine setTimeMineLocalizedFormat:@"2014/10/27 14:58:00" withLimitSec:10000 withComment:@"ここまでくれば接続完了、"];
-        [TimeMine setTimeMineLocalizedFormat:@"2014/10/17 15:01:58" withLimitSec:1000000 withComment:@"接続完了したので名前を入れる"];
-        
-        [messenger callParent:BONJOUR_MESSAGE_CONNECTED, [messenger tag:@"connectedServerName" val:@"bonjour server"], nil];
+        [messenger callParent:BONJOUR_MESSAGE_CONNECTED, [messenger tag:@"connectedServerName" val:@"mousePadServer"], nil];
         bonjourState = STATE_BONJOUR_CONNECTED;
     }
     
     if ((eventCode & NSStreamEventHasBytesAvailable) != 0) {
-        NSLog(@"NSStreamEventHasBytesAvailable");
         [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"NSStreamEventHasBytesAvailable"], nil];
     }
     
@@ -282,11 +298,10 @@ NSOutputStream *bonjourOutputStream;
     }
     
     if ((eventCode & NSStreamEventEndEncountered) != 0) {
-        NSLog(@"NSStreamEventEndEncountered");
-        [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"NSStreamEventEndEncountered"], nil];
+        bonjourState = STATE_BONJOUR_DISCONNECTED;
+        [messenger callParent:BONJOUR_MESSAGE_DISCONNECTED, [messenger tag:@"disconnectedServerName" val:@"mousePadServer"], nil];
     }
     
-//    NSLog(@"handleEvent!");
 }
 
 
@@ -318,6 +333,12 @@ typedef struct MousePadData MousePadData;
 - (void) sendPoint:(CGPoint)point withType:(Byte)type andKeysData:(KeysData)KeysData {
     if (![self isBonjourConnected]) return;
     if (bonjourState != STATE_BONJOUR_CONNECTED) return;
+    
+    /*
+     倍率のセット
+     */
+    point.x = point.x * 2.5;
+    point.y = point.y * 2.5;
     
     MousePadData mousePadData;
     

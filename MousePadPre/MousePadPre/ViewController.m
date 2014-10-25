@@ -69,23 +69,19 @@ typedef struct MouseButtonsData MouseButtonsData;
     
     messenger = [[KSMessenger alloc]initWithBodyID:self withSelector:@selector(receiver:) withName:MESSENGER_MAINVIEWCONTROLLER];
     
-    
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/14 14:27:00" withLimitSec:11000000 withComment:@"設定ファイルの事を考える、userPrefでいいはずだが、いまんとこ固定コード"];
-    
-    
     /**
      設定ファイルを読み込む
      存在しなければデフォルトを読む
      */
-    NSDictionary *defKeyButtonDict = @{
-                                       @"identity":@"K",
-                                       @"inputType":[NSNumber numberWithInt:INPUT_TYPE_KEY],
-                                       @"x":@100.0f,
-                                       @"y":@600.0f,
-                                       @"title":@"K"
-                                       };
+//    NSDictionary *defKeyButtonDict = @{
+//                                       @"identity":@"K",
+//                                       @"inputType":[NSNumber numberWithInt:INPUT_TYPE_KEY],
+//                                       @"x":@100.0f,
+//                                       @"y":@600.0f,
+//                                       @"title":@"K"
+//                                       };
     
-    NSArray *settings = @[defKeyButtonDict];
+    NSArray *settings = @[];
     
     buttonManager = [[KeyboardButtonManager alloc]initWithBaseView:self.view andSetting:settings];
     
@@ -104,7 +100,7 @@ typedef struct MouseButtonsData MouseButtonsData;
             break;
     }
     
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/22 21:43:11" withLimitSec:100000 withComment:@"後回しのフェードビュー、最終的には操作可能になったら出す"];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/25 10:39:00" withLimitSec:100000 withComment:@"後回しのフェードビュー、最終的には操作可能になったら出す"];
 //    FadeViewController *fadeViewCont = [[FadeViewController alloc] initFadeViewWithBarseView:self.view.frame];
 //    [self.view addSubview:fadeViewCont.view];
 }
@@ -164,16 +160,15 @@ typedef struct MouseButtonsData MouseButtonsData;
         }
             
         case BONJOUR_MESSAGE_CONNECTED:{
-            NSLog(@"BONJOUR_MESSAGE_CONNECTED!!!");
             NSString *connectedServerName = paramsDict[@"connectedServerName"];
-            NSLog(@"connectedServerName %@", connectedServerName);
-            [_indicatorButton setTitle:@"aawwwaaaaaaaaa" forState:UIControlStateNormal];
+            NSString *displayConnectedServerName = [NSString stringWithFormat:@"connected:%@", connectedServerName];
+            [_indicatorButton setTitle:displayConnectedServerName forState:UIControlStateNormal];
             [_indicatorCircle setHidden:YES];
             
-            // disappear message.
-            [_indicatorButton setTitle:@"" forState:UIControlStateNormal];
+            // erase message.
+            [_infoMessage setText:@""];
             
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"bonjour connected."
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:displayConnectedServerName
                                                             message:@"ok"
                                                            delegate:nil
                                                   cancelButtonTitle:@"OK"
@@ -188,6 +183,15 @@ typedef struct MouseButtonsData MouseButtonsData;
         }
         
         case BONJOUR_MESSAGE_CONNECT_FAILED:{
+            break;
+        }
+    
+        case BONJOUR_MESSAGE_DISCONNECTED:{
+            [_indicatorButton setTitle:@"disconnected" forState:UIControlStateNormal];
+            [_indicatorCircle setHidden:YES];
+            
+            NSString *message = paramsDict[@"disconnectedServerName"];
+            [_infoMessage setText:message];
             break;
         }
             

@@ -98,10 +98,8 @@ NSMutableDictionary *screenInfo;
                 case BONJOUR_RECEIVER_PUBLISHING:
                     break;
                 case BONJOUR_RECEIVER_PUBLISHED:
-//                    NSLog(@"ここがあんまりにも長いと、定期的に再起動したくなる。んだけど、そういうわけにも行かない。 notif押したら再起動をかけよう。");
                     break;
                 case BONJOUR_RECEIVER_CLOSING:{
-                    NSLog(@"detect closing.");
                     [self setState:BONJOUR_RECEIVER_CLOSED];
                     [messenger callMyself:MESSAGE_REPUBLISH,
                      [messenger withDelay:3.0f],
@@ -117,7 +115,6 @@ NSMutableDictionary *screenInfo;
             break;
             
         case MESSAGE_REPUBLISH:
-            NSLog(@"republish.");
             [self publishBonjourService];
             break;
     }
@@ -149,7 +146,7 @@ NSMutableDictionary *screenInfo;
     bonjourSocket = [[NSSocketPort alloc] init];
     
     if (!bonjourSocket) {
-        [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_OPEN_PORT withTitle:@"server failed" message:@"failed to locate bonjour network. reboot?"];
+        [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_OPEN_PORT withTitle:@"server failed" message:@"failed to locate bonjour network." isReceiveInput:NO];
         return;
     }
     
@@ -174,7 +171,7 @@ NSMutableDictionary *screenInfo;
         [bonjourService publish];
         [self setState:BONJOUR_RECEIVER_PUBLISHING];
     } else {
-        [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_OPEN_BONJOUR withTitle:@"server failed" message:@"failed to locate bonjour network. reboot?"];
+        [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_OPEN_BONJOUR withTitle:@"server failed" message:@"failed to locate bonjour network." isReceiveInput:NO];
     }
 }
 
@@ -187,13 +184,17 @@ NSMutableDictionary *screenInfo;
 /**
  通知
  */
-- (void) notifyToUserWithStatus:(int)status withTitle:(NSString *)title message:(NSString *)message {
+- (void) notifyToUserWithStatus:(int)status withTitle:(NSString *)title message:(NSString *)message isReceiveInput:(BOOL)receive {
     NSUserNotification * newUserNotification = [NSUserNotification new];
-    newUserNotification.title = @"mouseServer";
-    newUserNotification.actionButtonTitle = [[NSString alloc]initWithFormat:@"%d", status];
-    newUserNotification.hasActionButton = NO;
+    newUserNotification.title = @"mousePadServer";
     newUserNotification.subtitle = title;
     newUserNotification.informativeText = message;
+    
+    newUserNotification.identifier = [NSString stringWithFormat:@"%d", status];
+//    NSString *path = @"";
+//    newUserNotification.contentImage = [[NSImage alloc] initWithContentsOfFile: path];
+    
+    if (receive) newUserNotification.hasReplyButton = YES;
     
     [notifier deliverNotification:newUserNotification];
 }
@@ -212,8 +213,11 @@ NSMutableDictionary *screenInfo;
  notificationがタッチされた場合の挙動
  */
 - (void)userNotificationCenter:(NSUserNotificationCenter *)center didActivateNotification:(NSUserNotification *)notification {
-    int status = [notification.actionButtonTitle intValue];
-    switch (status) {
+    NSLog(@"notification %@", notification);
+    NSString *notificationIdentity = notification.identifier;
+    NSLog(@"notificationIdentity %@", notificationIdentity);
+    
+    switch ([notificationIdentity intValue]) {
         case BONJOUR_RECEIVER_LAUNCHED:
             break;
             
@@ -236,10 +240,11 @@ NSMutableDictionary *screenInfo;
 
         case BONJOUR_RECEIVER_ACCEPTED:
 //            ignore
+            NSLog(@"ignored");
             break;
             
         default:
-            NSLog(@"status %d", status);
+            NSLog(@"status %@", notificationIdentity);
             [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 20:53:26" withLimitSec:0 withComment:@"未知のコード"];
             break;
     }
@@ -277,9 +282,9 @@ NSMutableDictionary *screenInfo;
         
         [self setState:BONJOUR_RECEIVER_PUBLISHED];
         
-        [self notifyToUserWithStatus:BONJOUR_RECEIVER_PUBLISHED withTitle:@"bonjour published." message:@"need reboot? touch this."];
+        [self notifyToUserWithStatus:BONJOUR_RECEIVER_PUBLISHED withTitle:@"bonjour published." message:@"need control? tap this." isReceiveInput:NO];
     } else {
-        [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_PUBLISH_BONJOUR withTitle:@"server failed" message:@"failed to publish bonjour network. reboot?"];
+        [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_PUBLISH_BONJOUR withTitle:@"server failed" message:@"failed to publish bonjour network." isReceiveInput:NO];
     }
     
 }
@@ -363,7 +368,7 @@ NSMutableDictionary *screenInfo;
      */
     NSDate * nowDate = [NSDate date];//現在のシステム時間
     NSString *nowDateStr = [[NSString alloc]initWithFormat:@"time:%@", nowDate];
-    [self notifyToUserWithStatus:BONJOUR_RECEIVER_ACCEPTED withTitle:@"device connected" message:nowDateStr];
+    [self notifyToUserWithStatus:BONJOUR_RECEIVER_ACCEPTED withTitle:@"device connected" message:nowDateStr isReceiveInput:NO];
     
 
     /*
