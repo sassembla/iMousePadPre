@@ -18,7 +18,7 @@
 
 - (id) init {
     if (self = [super init]) {
-        [TimeMine setTimeMineLocalizedFormat:@"2014/10/25 21:25:14" withLimitSec:10000 withComment:@"アイコンが上に消えちゃうのをなんとかする"];
+        [TimeMine setTimeMineLocalizedFormat:@"2014/10/25 21:50:34" withLimitSec:100000 withComment:@"write不可なタイミングがありそうな気がする。"];
         
         messenger = [[KSMessenger alloc] initWithBodyID:self withSelector:@selector(receiver:) withName:MESSENGER_BONJOURCONTROLLER];
         [messenger connectParent:MESSENGER_MAINVIEWCONTROLLER];
@@ -80,6 +80,7 @@ typedef NS_ENUM(int, BONJOUR_STATE) {
 };
 
 
+float mouseSpeedScale = 2.5f;
 
 
 NSNetServiceBrowser *bonjourBrowser;
@@ -210,7 +211,6 @@ NSOutputStream *bonjourOutputStream;
     NSString *message = [NSString stringWithFormat:@"netServiceDidResolveAddress sender port:%ld", (long)sender.port];
 
     if (bonjourState == STATE_BONJOUR_CONNECTING) {
-        NSLog(@"bonjourState がconnectedな状態で接続完了が来たけどぶっちゃけいらなくない？ %@", message);
         return;
     }
     
@@ -346,8 +346,8 @@ typedef struct MousePadData MousePadData;
     /*
      倍率のセット
      */
-    point.x = point.x * 2.5;
-    point.y = point.y * 2.5;
+    point.x = point.x * mouseSpeedScale;
+    point.y = point.y * mouseSpeedScale;
     
     MousePadData mousePadData;
     
@@ -371,7 +371,7 @@ typedef struct MousePadData MousePadData;
     
     
     NSData *data = [NSData dataWithBytes:&mousePadData length:sizeof(MousePadData)];
-
+    
     NSInteger written = [bonjourOutputStream write:[data bytes] maxLength:[data length]];
     if (written <= 0) {
         // should start reconnection,, but other error will cover this point.
@@ -388,7 +388,10 @@ typedef struct MousePadData MousePadData;
     mousePadData.isHeartBeat = true;
     
     NSData *data = [NSData dataWithBytes:&mousePadData length:sizeof(MousePadData)];
-    [bonjourOutputStream write:[data bytes] maxLength:[data length]];
+    NSInteger written = [bonjourOutputStream write:[data bytes] maxLength:[data length]];
+    if (written <= 0) {
+        NSLog(@"size2 is under 0");
+    }
 }
 
 

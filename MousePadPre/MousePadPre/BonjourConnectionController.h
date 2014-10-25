@@ -35,4 +35,7 @@ typedef NS_ENUM(int, MESSAGE_BONJOUR) {
 
 - (void) sendPoint:(CGPoint)point withType:(Byte)type andKeysData:(KeysData)KeysData;
 - (void) resetSearchBonjourNetwork;
+
+- (void) sendHeartBeat;
+
 @end

@@ -78,9 +78,6 @@ typedef NS_ENUM(int, NOTIFY_STATE) {
     NOTIFY_CONTROL
 };
 
-
-
-
 typedef NS_ENUM(int, MESSAGE) {
     MESSAGE_HEARTBEAT,
     MESSAGE_REPUBLISH
@@ -88,24 +85,21 @@ typedef NS_ENUM(int, MESSAGE) {
 
 NSSocketPort *bonjourSocket;
 NSNetService *bonjourService;
-NSFileHandle *bonjourSocketHandle;
 NSFileHandle *bonjourAcceptedHandle;
 
 NSUserNotificationCenter *notifier;
 
-int state;
-
+int bonjourState;
+int currentPortNumber;
 
 CGFloat SCREEN_WIDTH;
 CGFloat SCREEN_HEIGHT;
 
 NSMutableDictionary *screenInfo;
 
-
+#define HEARTBEAT_TIMEOUT   (7.0)
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    NSLog(@"boot!");
-    
     [self setState:BONJOUR_RECEIVER_LAUNCHED];
     
     messenger = [[KSMessenger alloc]initWithBodyID:self withSelector:@selector(receiver:) withName:@"MASTER"];
@@ -129,37 +123,67 @@ NSMutableDictionary *screenInfo;
 - (void) receiver:(NSNotification *)notif {
 
     switch ([messenger execFrom:[messenger myName] viaNotification:notif]) {
-        case MESSAGE_HEARTBEAT:
+        case MESSAGE_HEARTBEAT:{
             
-            switch (state) {
-                case BONJOUR_RECEIVER_PUBLISHING:
-                    break;
-                case BONJOUR_RECEIVER_PUBLISHED:
-                    break;
-                case BONJOUR_RECEIVER_CLOSING:{
-                    [self setState:BONJOUR_RECEIVER_CLOSED];
-                    [messenger callMyself:MESSAGE_REPUBLISH,
-                     [messenger withDelay:3.0f],
-                     nil];
-                    
-                    // notify to user.
-                    [self notifyToUserWithStatus:NOTIFY_DISCONNECTED withTitle:@"device disconnected." message:@"" isReceiveInput:NO];
+            [self heartBeat:bonjourState];
+            
+            [messenger callMyself:MESSAGE_HEARTBEAT, [messenger withDelay:1.0f], nil];
+            break;
+        }
+            
+        case MESSAGE_REPUBLISH:
+            switch (bonjourState) {
+                case BONJOUR_RECEIVER_CLOSED:{
+                    [self publishBonjourService];
                     break;
                 }
-                    
                 default:
                     break;
             }
             
-            [messenger callMyself:MESSAGE_HEARTBEAT, [messenger withDelay:1.0f], nil];
-            break;
-            
-        case MESSAGE_REPUBLISH:
-            [self publishBonjourService];
             break;
     }
 }
 
+
+- (void) heartBeat:(int)currentBonjourState {
+//    NSLog(@"heartBeating,,, %d", currentBonjourState);
+    switch (currentBonjourState) {
+        case BONJOUR_RECEIVER_PUBLISHING:
+            break;
+        case BONJOUR_RECEIVER_PUBLISHED:
+            break;
+        
+            
+        case BONJOUR_RECEIVER_ACCEPTED:{
+            if (lastHeartBeatDate) {
+                if (HEARTBEAT_TIMEOUT < [[NSDate date] timeIntervalSinceDate:lastHeartBeatDate]) {
+                    
+                }
+            }
+            break;
+        }
+            
+        case BONJOUR_RECEIVER_CLOSING:{
+            [self setState:BONJOUR_RECEIVER_CLOSED];
+            
+            /*
+             republishの予約を行う
+             */
+            [messenger callMyself:MESSAGE_REPUBLISH,
+             [messenger withDelay:3.0f],
+             nil];
+            
+            // notify to user.
+            [self notifyToUserWithStatus:NOTIFY_DISCONNECTED withTitle:@"device disconnected." message:@"" isReceiveInput: NO];
+            break;
+        }
+        
+            
+        default:
+            break;
+    }
+}
 
 
 /**
@@ -197,14 +221,12 @@ NSMutableDictionary *screenInfo;
     socklen_t len = sizeof(addr);
     
     getsockname([bonjourSocket socket], (struct sockaddr *)&addr, &len);
-    
-    int portNumber = ntohs(addr.sin_port);
-    NSLog(@"port:%d", portNumber);
+    currentPortNumber = ntohs(addr.sin_port);
     
     /*
      bonjourで使用するサービスを展開
      */
-    bonjourService = [[NSNetService alloc]initWithDomain:BONJOUR_DOMAIN type:BONJOUR_TYPE name:BONJOUR_NAME port:portNumber];
+    bonjourService = [[NSNetService alloc]initWithDomain:BONJOUR_DOMAIN type:BONJOUR_TYPE name:BONJOUR_NAME port:currentPortNumber];
     if (bonjourService) {
         bonjourService.delegate = self;
         [bonjourService scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
@@ -216,7 +238,7 @@ NSMutableDictionary *screenInfo;
 }
 
 - (void) setState:(int)nextState {
-    state = nextState;
+    bonjourState = nextState;
 }
 
 
@@ -230,7 +252,7 @@ NSMutableDictionary *screenInfo;
     newUserNotification.subtitle = title;
     newUserNotification.informativeText = message;
     
-    NSDate * nowDate = [NSDate date];//現在のシステム時間
+    NSDate *nowDate = [NSDate date];//現在のシステム時間
     NSString *nowDateStr = [[NSString alloc]initWithFormat:@"time:%@", nowDate];
     
     // set identity.
@@ -287,6 +309,22 @@ NSMutableDictionary *screenInfo;
             // do nothing
             break;
             
+        case NOTIFY_DISCONNECTED:
+//            if (notification.response) {
+//                NSString *command = [notification.response string];
+//                
+//                if ([command hasPrefix:@"reboot"] || [command hasPrefix:@"r"]) {
+//                    [self disconnectBonjourService];
+//                    [self publishBonjourService];
+//                }
+//                
+//                if ([command hasPrefix:@"quit"] || [command hasPrefix:@"q"]) {
+//                    [self disconnectBonjourService];
+//                    [NSApp terminate:nil];
+//                }
+//            }
+            
+            break;
         case NOTIFY_CONTROL:{
             if (notification.response) {
                 NSString *command = [notification.response string];
@@ -329,15 +367,21 @@ NSMutableDictionary *screenInfo;
  */
 /* Sent to the NSNetService instance's delegate prior to advertising the service on the network. If for some reason the service cannot be published, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotPublish: method.
  */
-//- (void)netServiceWillPublish:(NSNetService *)sender {}
+- (void)netServiceWillPublish:(NSNetService *)sender {
+    NSLog(@"sender %@", sender);
+}
 
 
 /* Sent to the NSNetService instance's delegate when the publication of the instance is complete and successful.
  
  */
 - (void)netServiceDidPublish:(NSNetService *)sender {
+   
+    if (bonjourState == BONJOUR_RECEIVER_PUBLISHED) {
+        return;
+    }
     
-    bonjourSocketHandle = [[NSFileHandle alloc] initWithFileDescriptor:[bonjourSocket socket] closeOnDealloc:YES];
+    NSFileHandle *bonjourSocketHandle = [[NSFileHandle alloc] initWithFileDescriptor:[bonjourSocket socket] closeOnDealloc:YES];
     if (bonjourSocketHandle) {
         /*
          bonjourの接続を受け付けた後の通知をセット
@@ -451,7 +495,6 @@ NSMutableDictionary *screenInfo;
             fileHandle.writeabilityHandler = nil;
             fileHandle.readabilityHandler = nil;
             
-            
             [[NSNotificationCenter defaultCenter] removeObserver:self name:NSFileHandleConnectionAcceptedNotification object:fileHandle];
             [self disconnectBonjourService];
             
@@ -484,6 +527,8 @@ CGPoint currentInputPoint;
 CGPoint currentMousePoint;
 CGPoint beforeInputPoint;
 
+NSDate *lastHeartBeatDate;
+
 - (void) execute:(NSData *)data {
     unsigned long len =[data length];
     for (int i = 0; i < len/sizeOfMousePadData; i++) {
@@ -492,11 +537,17 @@ CGPoint beforeInputPoint;
                                              length:sizeOfMousePadData
                                        freeWhenDone:NO];
         
+        
         /*
          マウス入力とキー入力の解析と再現を行う。
          */
         MousePadData mousePadData;
         [partialData getBytes:&mousePadData length:sizeof(MousePadData)];
+        
+        if (mousePadData.isHeartBeat) {
+            lastHeartBeatDate = [NSDate date];
+            continue;
+        }
         
         /*
          マウスの位置入力

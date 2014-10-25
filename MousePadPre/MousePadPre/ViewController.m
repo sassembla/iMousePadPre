@@ -52,6 +52,9 @@ typedef NS_ENUM(Byte, MOUSE_INPUT_EVENT) {
     MOUSE_WHEEL_DOWN
 };
 
+typedef NS_ENUM(int, VIEW_MESSAGE) {
+    VIEW_MESSAGE_HEARTBEAT
+};
 
 struct MouseButtonsData {
     Byte left;
@@ -63,6 +66,9 @@ typedef struct MouseButtonsData MouseButtonsData;
 
 
 - (void)viewDidLoad {
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/25 21:25:14" withLimitSec:100000 withComment:@"アイコンが上に消えちゃうのをなんとかする"];
+    
+    
     mouseIndicateViewCont = [[MouseIndicatorViewController alloc] initWithBaseview:self.view];
     [super viewDidLoad];
     
@@ -98,6 +104,8 @@ typedef struct MouseButtonsData MouseButtonsData;
         default:
             break;
     }
+    
+    [messenger callMyself:VIEW_MESSAGE_HEARTBEAT, nil];
 }
 
 /**
@@ -221,7 +229,46 @@ typedef struct MouseButtonsData MouseButtonsData;
         default:
             break;
     }
+    
+    /*
+     自分からの通知
+     */
+    switch ([messenger execFrom:[messenger myName] viaNotification:notif]) {
+        case VIEW_MESSAGE_HEARTBEAT:{
+
+            [self heartBeat];
+            
+            [messenger callMyself:VIEW_MESSAGE_HEARTBEAT,
+             [messenger withDelay:3.0f],
+             nil];
+            break;
+        }
+        default:
+            break;
+    }
 }
+
+
+/**
+ time interval event
+ */
+- (void) heartBeat {
+    switch (connectionType) {
+        case CONNECTIONTYPE_BONJOUR:{
+            [bonConnectCont sendHeartBeat];
+            break;
+        }
+        case CONNECTIONTYPE_BLUETOOTHLE:{
+            [TimeMine setTimeMineLocalizedFormat:@"2014/10/16 21:32:22" withLimitSec:0 withComment:@"BTの接続し直しを行うコード、未定義"];
+            break;
+        }
+            
+            
+        default:
+            break;
+    }
+}
+
 
 - (void) resetInputParameter {
     mouseButtonsData.left = MOUSE_BUTTON_NONE;
