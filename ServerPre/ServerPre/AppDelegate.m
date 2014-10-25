@@ -158,7 +158,8 @@ NSMutableDictionary *screenInfo;
         case BONJOUR_RECEIVER_ACCEPTED:{
             if (lastHeartBeatDate) {
                 if (HEARTBEAT_TIMEOUT < [[NSDate date] timeIntervalSinceDate:lastHeartBeatDate]) {
-                    
+                    [self disconnectBonjourService];
+                    [self publishBonjourService];
                 }
             }
             break;
@@ -367,9 +368,7 @@ NSMutableDictionary *screenInfo;
  */
 /* Sent to the NSNetService instance's delegate prior to advertising the service on the network. If for some reason the service cannot be published, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotPublish: method.
  */
-- (void)netServiceWillPublish:(NSNetService *)sender {
-    NSLog(@"sender %@", sender);
-}
+//- (void)netServiceWillPublish:(NSNetService *)sender {}
 
 
 /* Sent to the NSNetService instance's delegate when the publication of the instance is complete and successful.
@@ -442,9 +441,7 @@ NSMutableDictionary *screenInfo;
  * kCFBooleanTrue for kCFStreamSSLIsServer in the settings dictionary along with
  * a valid SecIdentityRef as the first entry of kCFStreamSSLCertificates.
  */
-- (void)netService:(NSNetService *)sender didAcceptConnectionWithInputStream:(NSInputStream *)inputStream outputStream:(NSOutputStream *)outputStream {
-    NSLog(@"didAcceptConnectionWithInputStream");
-}
+//- (void)netService:(NSNetService *)sender didAcceptConnectionWithInputStream:(NSInputStream *)inputStream outputStream:(NSOutputStream *)outputStream {}
 
 /**
  クライアントのconnectingを受け取った「後」
@@ -452,10 +449,7 @@ NSMutableDictionary *screenInfo;
 - (void) acceptConnection:(NSNotification *)notif {
     NSFileHandle *connectedHandle = [[notif userInfo] objectForKey:NSFileHandleNotificationFileHandleItem];
     
-    if (connectedHandle) {
-        NSLog(@"valid handle access:%@", connectedHandle.description);
-    } else {
-        NSLog(@"invalid handle access");
+    if (connectedHandle) {} else {
         return;
     }
     

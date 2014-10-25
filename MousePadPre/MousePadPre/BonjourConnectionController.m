@@ -191,18 +191,12 @@ NSOutputStream *bonjourOutputStream;
 
 /* Sent to the NSNetService instance's delegate when an error in publishing the instance occurs. The error dictionary will contain two key/value pairs representing the error domain and code (see the NSNetServicesError enumeration above for error code constants). It is possible for an error to occur after a successful publication.
  */
-- (void)netService:(NSNetService *)sender didNotPublish:(NSDictionary *)errorDict {
-    [messenger callParent:BONJOUR_MESSAGE_MISC, [messenger tag:@"info" val:@"netService didNotPublish"], nil];
-}
+//- (void)netService:(NSNetService *)sender didNotPublish:(NSDictionary *)errorDict {}
 
 /* Sent to the NSNetService instance's delegate prior to resolving a service on the network. If for some reason the resolution cannot occur, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotResolve: method.
  */
 //NSNetService *expectingService
-//- (void)netServiceWillResolve:(NSNetService *)sender {
-//    NSLog(@"解決されそう、この一個だけでいいんじゃね？　っていう。 %@", sender);
-//    if (expectingService) return;
-//    expectingService = sender;
-//}
+//- (void)netServiceWillResolve:(NSNetService *)sender {}
 
 
 /* Sent to the NSNetService instance's delegate when one or more addresses have been resolved for an NSNetService instance. Some NSNetService methods will return different results before and after a successful resolution. An NSNetService instance may get resolved more than once; truly robust clients may wish to resolve again after an error, or to resolve more than once.
@@ -242,7 +236,7 @@ NSOutputStream *bonjourOutputStream;
 
 /* Sent to the NSNetService instance's delegate when the instance's previously running publication or resolution request has stopped.
  */
-- (void)netServiceDidStop:(NSNetService *)sender {}
+//- (void)netServiceDidStop:(NSNetService *)sender {}
 
 /* Sent to the NSNetService instance's delegate when the instance is being monitored and the instance's TXT record has been updated. The new record is contained in the data parameter.
  */
@@ -261,9 +255,7 @@ NSOutputStream *bonjourOutputStream;
  * kCFBooleanTrue for kCFStreamSSLIsServer in the settings dictionary along with
  * a valid SecIdentityRef as the first entry of kCFStreamSSLCertificates.
  */
-- (void)netService:(NSNetService *)sender didAcceptConnectionWithInputStream:(NSInputStream *)inputStream outputStream:(NSOutputStream *)outputStream {
-    NSLog(@"didAcceptConnectionWithInputStream");
-}
+//- (void)netService:(NSNetService *)sender didAcceptConnectionWithInputStream:(NSInputStream *)inputStream outputStream:(NSOutputStream *)outputStream {}
 
 
 /**

@@ -64,6 +64,9 @@ struct MouseButtonsData {
 
 typedef struct MouseButtonsData MouseButtonsData;
 
+bool firstConnectTime;
+
+#define INTERVAL_HEARTBEAT  (1.0f)
 
 - (void)viewDidLoad {
     [TimeMine setTimeMineLocalizedFormat:@"2014/10/25 21:25:14" withLimitSec:100000 withComment:@"アイコンが上に消えちゃうのをなんとかする"];
@@ -89,6 +92,13 @@ typedef struct MouseButtonsData MouseButtonsData;
     NSArray *settings = @[];
     
     buttonManager = [[KeyboardButtonManager alloc]initWithBaseView:self.view andSetting:settings];
+    
+    
+    
+    /*
+     show alert when connected to server first time.
+     */
+    firstConnectTime = true;
     
     
     switch (connectionType) {
@@ -172,13 +182,16 @@ typedef struct MouseButtonsData MouseButtonsData;
             // erase message.
             [_infoMessage setText:@""];
             
-            NSString *connectedMessage = [NSString stringWithFormat:@"MousePad connected to %@", connectedServerName];
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:connectedMessage
-                                                            message:@"ok"
-                                                           delegate:nil
-                                                  cancelButtonTitle:@"OK"
-                                                  otherButtonTitles:nil];
-            [alert show];
+            if (firstConnectTime) {
+                NSString *connectedMessage = [NSString stringWithFormat:@"MousePad connected to %@", connectedServerName];
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:connectedMessage
+                                                                message:@"ok"
+                                                               delegate:nil
+                                                      cancelButtonTitle:@"OK"
+                                                      otherButtonTitles:nil];
+                [alert show];
+                firstConnectTime = false;
+            }
             
             [self resetInputParameter];
             
@@ -239,7 +252,7 @@ typedef struct MouseButtonsData MouseButtonsData;
             [self heartBeat];
             
             [messenger callMyself:VIEW_MESSAGE_HEARTBEAT,
-             [messenger withDelay:3.0f],
+             [messenger withDelay:INTERVAL_HEARTBEAT],
              nil];
             break;
         }
