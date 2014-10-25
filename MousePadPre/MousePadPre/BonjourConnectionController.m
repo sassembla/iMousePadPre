@@ -18,7 +18,7 @@
 
 - (id) init {
     if (self = [super init]) {
-        
+        [TimeMine setTimeMineLocalizedFormat:@"2014/10/25 21:25:14" withLimitSec:10000 withComment:@"アイコンが上に消えちゃうのをなんとかする"];
         
         messenger = [[KSMessenger alloc] initWithBodyID:self withSelector:@selector(receiver:) withName:MESSENGER_BONJOURCONTROLLER];
         [messenger connectParent:MESSENGER_MAINVIEWCONTROLLER];
@@ -182,11 +182,11 @@ NSOutputStream *bonjourOutputStream;
  */
 /* Sent to the NSNetService instance's delegate prior to advertising the service on the network. If for some reason the service cannot be published, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotPublish: method.
  */
-- (void)netServiceWillPublish:(NSNetService *)sender {}
+//- (void)netServiceWillPublish:(NSNetService *)sender {}
 
 /* Sent to the NSNetService instance's delegate when the publication of the instance is complete and successful.
  */
-- (void)netServiceDidPublish:(NSNetService *)sender {}
+//- (void)netServiceDidPublish:(NSNetService *)sender {}
 
 /* Sent to the NSNetService instance's delegate when an error in publishing the instance occurs. The error dictionary will contain two key/value pairs representing the error domain and code (see the NSNetServicesError enumeration above for error code constants). It is possible for an error to occur after a successful publication.
  */
@@ -196,7 +196,12 @@ NSOutputStream *bonjourOutputStream;
 
 /* Sent to the NSNetService instance's delegate prior to resolving a service on the network. If for some reason the resolution cannot occur, the delegate will not receive this message, and an error will be delivered to the delegate via the delegate's -netService:didNotResolve: method.
  */
-- (void)netServiceWillResolve:(NSNetService *)sender {}
+//NSNetService *expectingService
+//- (void)netServiceWillResolve:(NSNetService *)sender {
+//    NSLog(@"解決されそう、この一個だけでいいんじゃね？　っていう。 %@", sender);
+//    if (expectingService) return;
+//    expectingService = sender;
+//}
 
 
 /* Sent to the NSNetService instance's delegate when one or more addresses have been resolved for an NSNetService instance. Some NSNetService methods will return different results before and after a successful resolution. An NSNetService instance may get resolved more than once; truly robust clients may wish to resolve again after an error, or to resolve more than once.
@@ -366,7 +371,12 @@ typedef struct MousePadData MousePadData;
     
     
     NSData *data = [NSData dataWithBytes:&mousePadData length:sizeof(MousePadData)];
-    [bonjourOutputStream write:[data bytes] maxLength:[data length]];
+
+    NSInteger written = [bonjourOutputStream write:[data bytes] maxLength:[data length]];
+    if (written <= 0) {
+        // should start reconnection,, but other error will cover this point.
+        NSLog(@"size is under 0");
+    }
 }
 
 - (void) sendHeartBeat {

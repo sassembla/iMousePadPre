@@ -46,6 +46,41 @@ typedef NS_ENUM(Byte, MOUSE_INPUT_EVENT) {
 
 unsigned long sizeOfMousePadData;
 
+
+typedef NS_ENUM(int, BONJOUR_RECEIVER_STATE) {
+    BONJOUR_RECEIVER_LAUNCHED,
+    BONJOUR_RECEIVER_FAILED_OPEN_PORT,
+    BONJOUR_RECEIVER_FAILED_OPEN_BONJOUR,
+    BONJOUR_RECEIVER_FAILED_PUBLISH_BONJOUR,
+    BONJOUR_RECEIVER_PUBLISHING,
+    BONJOUR_RECEIVER_PUBLISHED,
+    BONJOUR_RECEIVER_ACCEPTED,
+    BONJOUR_RECEIVER_CLOSING,
+    BONJOUR_RECEIVER_CLOSED,
+    
+    BONJOUR_RECEIVER_CONTROL
+};
+
+
+typedef NS_ENUM(int, NOTIFY_STATE) {
+    NOTIFY_LAUNCHED,
+    
+    NOTIFY_FAILED_OPEN_PORT,
+    NOTIFY_FAILED_OPEN_BONJOUR,
+    NOTIFY_FAILED_PUBLISH_BONJOUR,
+    
+    NOTIFY_PUBLISHING,
+    NOTIFY_PUBLISHED,
+    
+    NOTIFY_ACCEPTED,
+    NOTIFY_DISCONNECTED,
+    
+    NOTIFY_CONTROL
+};
+
+
+
+
 typedef NS_ENUM(int, MESSAGE) {
     MESSAGE_HEARTBEAT,
     MESSAGE_REPUBLISH
@@ -106,6 +141,9 @@ NSMutableDictionary *screenInfo;
                     [messenger callMyself:MESSAGE_REPUBLISH,
                      [messenger withDelay:3.0f],
                      nil];
+                    
+                    // notify to user.
+                    [self notifyToUserWithStatus:NOTIFY_DISCONNECTED withTitle:@"device disconnected." message:@"" isReceiveInput:NO];
                     break;
                 }
                     
@@ -148,7 +186,7 @@ NSMutableDictionary *screenInfo;
     bonjourSocket = [[NSSocketPort alloc] init];
     
     if (!bonjourSocket) {
-        [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_OPEN_PORT withTitle:@"server failed" message:@"failed to locate bonjour network." isReceiveInput:NO];
+        [self notifyToUserWithStatus:NOTIFY_FAILED_OPEN_PORT withTitle:@"server failed" message:@"failed to locate bonjour network." isReceiveInput:NO];
         return;
     }
     
@@ -173,7 +211,7 @@ NSMutableDictionary *screenInfo;
         [bonjourService publish];
         [self setState:BONJOUR_RECEIVER_PUBLISHING];
     } else {
-        [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_OPEN_BONJOUR withTitle:@"server failed" message:@"failed to locate bonjour network." isReceiveInput:NO];
+        [self notifyToUserWithStatus:NOTIFY_FAILED_OPEN_BONJOUR withTitle:@"server failed" message:@"failed to locate bonjour network." isReceiveInput:NO];
     }
 }
 
@@ -227,29 +265,29 @@ NSMutableDictionary *screenInfo;
     int notificationStatus = [notification.actionButtonTitle intValue];
     
     switch (notificationStatus) {
-        case BONJOUR_RECEIVER_LAUNCHED:
+        case NOTIFY_LAUNCHED:
             break;
             
-        case BONJOUR_RECEIVER_FAILED_OPEN_PORT:
-        case BONJOUR_RECEIVER_FAILED_OPEN_BONJOUR:
-        case BONJOUR_RECEIVER_FAILED_PUBLISH_BONJOUR:{
+        case NOTIFY_FAILED_OPEN_PORT:
+        case NOTIFY_FAILED_OPEN_BONJOUR:
+        case NOTIFY_FAILED_PUBLISH_BONJOUR:{
             [TimeMine setTimeMineLocalizedFormat:@"2014/09/28 20:53:22" withLimitSec:10000 withComment:@"ネットワークの再建"];
             break;
         }
             
-        case BONJOUR_RECEIVER_PUBLISHING:
+        case NOTIFY_PUBLISHING:
             break;
             
-        case BONJOUR_RECEIVER_PUBLISHED:
-            [self notifyToUserWithStatus:BONJOUR_RECEIVER_CONTROL withTitle:@"input control" message:@"reboot(r) or quit(q)" isReceiveInput:YES];
+        case NOTIFY_PUBLISHED:
+            [self notifyToUserWithStatus:NOTIFY_CONTROL withTitle:@"input control" message:@"reboot(r) or quit(q)" isReceiveInput:YES];
             break;
             
 
-        case BONJOUR_RECEIVER_ACCEPTED:
+        case NOTIFY_ACCEPTED:
             // do nothing
             break;
             
-        case BONJOUR_RECEIVER_CONTROL:{
+        case NOTIFY_CONTROL:{
             if (notification.response) {
                 NSString *command = [notification.response string];
                 
@@ -302,7 +340,7 @@ NSMutableDictionary *screenInfo;
     bonjourSocketHandle = [[NSFileHandle alloc] initWithFileDescriptor:[bonjourSocket socket] closeOnDealloc:YES];
     if (bonjourSocketHandle) {
         /*
-         接続を受け付けた後の通知をセット
+         bonjourの接続を受け付けた後の通知をセット
          */
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(acceptConnection:) name:NSFileHandleConnectionAcceptedNotification object:bonjourSocketHandle];
         
@@ -310,9 +348,9 @@ NSMutableDictionary *screenInfo;
         
         [self setState:BONJOUR_RECEIVER_PUBLISHED];
         
-        [self notifyToUserWithStatus:BONJOUR_RECEIVER_PUBLISHED withTitle:@"bonjour published. keep running MousePad." message:@"need control? tap this." isReceiveInput:NO];
+        [self notifyToUserWithStatus:NOTIFY_PUBLISHED withTitle:@"New connection started." message:@"need control? tap this." isReceiveInput:NO];
     } else {
-        [self notifyToUserWithStatus:BONJOUR_RECEIVER_FAILED_PUBLISH_BONJOUR withTitle:@"server failed" message:@"failed to publish bonjour network." isReceiveInput:NO];
+        [self notifyToUserWithStatus:NOTIFY_FAILED_PUBLISH_BONJOUR withTitle:@"server failed" message:@"failed to publish bonjour network." isReceiveInput:NO];
     }
     
 }
@@ -383,7 +421,7 @@ NSMutableDictionary *screenInfo;
     /*
      通知
      */
-    [self notifyToUserWithStatus:BONJOUR_RECEIVER_ACCEPTED withTitle:@"device connected" message:@"" isReceiveInput:NO];
+    [self notifyToUserWithStatus:NOTIFY_ACCEPTED withTitle:@"device connected" message:@"" isReceiveInput:NO];
     
     
     /*
@@ -400,6 +438,7 @@ NSMutableDictionary *screenInfo;
      定義済みのpointerを使わないと、deallocされてしまう。
      */
     bonjourAcceptedHandle = [[notif userInfo] objectForKey:NSFileHandleNotificationFileHandleItem];
+    
     
     bonjourAcceptedHandle.writeabilityHandler = ^(NSFileHandle *fileHandle) {
         NSData *data = [fileHandle availableData];
@@ -448,7 +487,7 @@ CGPoint beforeInputPoint;
 - (void) execute:(NSData *)data {
     unsigned long len =[data length];
     for (int i = 0; i < len/sizeOfMousePadData; i++) {
-        int offset = i * sizeOfMousePadData;
+        unsigned long offset = i * sizeOfMousePadData;
         NSData *partialData = [NSData dataWithBytesNoCopy:(char *)[data bytes] + offset
                                              length:sizeOfMousePadData
                                        freeWhenDone:NO];
@@ -464,12 +503,10 @@ CGPoint beforeInputPoint;
          */
         CGPoint emitPoint = [self mouseUpdate:mousePadData.mousePoint withType:mousePadData.mouseEventType];
         
-        
         /*
          マウスのボタン入力
          */
         [self mouseButtonStatusUpdate:emitPoint left:mousePadData.left right:mousePadData.right andCenter:mousePadData.center];
-        
         
         /*
          キーの入出力
@@ -536,10 +573,6 @@ CGPoint beforeInputPoint;
         }
             
         default:{
-//            NSLog(@"保険up、これをつけるとupが効く、ということは、upが出てないか効果がない。なるほど。なんかイベントでちゃってるのでは。");
-//            CGEventRef up = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventLeftMouseUp, inputPoint, kCGMouseButtonLeft);
-//            CGEventPost(kCGHIDEventTap, up);
-//            CFRelease(up);
             break;
         }
     }

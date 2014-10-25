@@ -100,6 +100,9 @@ typedef struct MouseButtonsData MouseButtonsData;
     }
 }
 
+/**
+ 再接続処理を開始する
+ */
 - (IBAction)reconnect:(id)sender {
 
     switch (connectionType) {
@@ -187,6 +190,8 @@ typedef struct MouseButtonsData MouseButtonsData;
             
             NSString *disconnectedReason = paramsDict[@"reason"];
             [_infoMessage setText:disconnectedReason];
+            
+            [self reconnect:nil];
             break;
         }
             
@@ -204,12 +209,7 @@ typedef struct MouseButtonsData MouseButtonsData;
      bluetoothのコントローラからの通知
      */
     
-    
-    /*
-     FadeViewからの通知
-     */
-    
-    
+        
     /*
      ボタンコントローラからの通知
      */

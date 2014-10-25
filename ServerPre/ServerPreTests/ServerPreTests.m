@@ -31,30 +31,6 @@ AppDelegate *appDel;
     [super tearDown];
 }
 
-/**
- キーの入力
- */
-- (void) testKeyEntered {
-    [appDel setState:BONJOUR_RECEIVER_ACCEPTED];
-    
-    CGPoint point;
-    point.x = 100;
-    point.y = 100;
-    
-    int type = 0;
-    
-    
-    struct MousePadData mousePadData;
-    mousePadData.mousePoint = point;
-    mousePadData.mouseEventType = type;
-    
-    NSData *data = [NSData dataWithBytes:&mousePadData length:sizeof(mousePadData)];
-//    [appDel execute:data];
-
-    
-    XCTAssert(false, @"not yet applied");
-}
-
 
 - (void)testPerformanceExample {
     // This is an example of a performance test case.
