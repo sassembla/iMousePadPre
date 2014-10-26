@@ -77,8 +77,6 @@ bool firstConnectTime;
 
 
 - (void)viewDidLoad {
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/25 21:25:14" withLimitSec:100000 withComment:@"アイコンが上に消えちゃうのをなんとかする"];
-    [TimeMine setTimeMineLocalizedFormat:@"2014/10/26 2:37:14" withLimitSec:100000 withComment:@"centerの縦をとってホイル扱いする"];
     
     mouseIndicateViewCont = [[MouseIndicatorViewController alloc] initWithBaseview:self.view];
     [super viewDidLoad];
@@ -522,6 +520,9 @@ MouseButtonsData mouseButtonsData;
      カーソル移動
      */
     mouseIndicateViewCont.view.center = point;
+    if (point.y < 100) {
+        mouseIndicateViewCont.view.center = CGPointMake(point.x, point.y+100);
+    }
 
     
     KeysData keysData = [buttonManager keysData];
