@@ -9,9 +9,8 @@
 struct KeysData {
     Byte left;
     Byte right;
-    Byte center;
-    
-    Byte keySlots[8];
+    Byte centerCommand;
+    float centerWheelMoveAmount;
 };
 
 typedef struct KeysData KeysData;

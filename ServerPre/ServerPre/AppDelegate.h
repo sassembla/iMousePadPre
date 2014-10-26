@@ -9,8 +9,13 @@
 #import <Cocoa/Cocoa.h>
 #import "KSMessenger.h"
 
+// 2014/10/26 13:23:49
+struct CenterContainer {
+    Byte command;
+    float wheelMoveAmount;
+};
+typedef struct CenterContainer CenterContainer;
 
-// 2014/10/22 4:16:51
 struct MousePadData {
     bool isHeartBeat;
     
@@ -19,14 +24,10 @@ struct MousePadData {
     
     Byte left;
     Byte right;
-    Byte center;
-    
-    Byte keySlots[8];
+    CenterContainer centerContainer;
 };
-
 typedef struct MousePadData MousePadData;
 
-typedef struct MousePadData MousePadData;
 
 
 @interface AppDelegate : NSObject <NSApplicationDelegate, NSPortDelegate, NSNetServiceDelegate, NSUserNotificationCenterDelegate> {

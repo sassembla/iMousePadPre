@@ -18,8 +18,6 @@
 
 - (id) init {
     if (self = [super init]) {
-        [TimeMine setTimeMineLocalizedFormat:@"2014/10/25 21:50:34" withLimitSec:100000 withComment:@"write不可なタイミングがありそうな気がする。"];
-        
         messenger = [[KSMessenger alloc] initWithBodyID:self withSelector:@selector(receiver:) withName:MESSENGER_BONJOURCONTROLLER];
         [messenger connectParent:MESSENGER_MAINVIEWCONTROLLER];
         
@@ -81,6 +79,7 @@ typedef NS_ENUM(int, BONJOUR_STATE) {
 
 
 float mouseSpeedScale = 2.5f;
+float wheelSpeedScale = 7.5f;
 
 
 NSNetServiceBrowser *bonjourBrowser;
@@ -312,7 +311,14 @@ NSOutputStream *bonjourOutputStream;
 }
 
 
-// 2014/10/22 4:16:51
+
+// 2014/10/26 13:23:49
+struct CenterContainer {
+    Byte command;
+    float wheelMoveAmount;
+};
+typedef struct CenterContainer CenterContainer;
+
 struct MousePadData {
     bool isHeartBeat;
     
@@ -321,12 +327,11 @@ struct MousePadData {
     
     Byte left;
     Byte right;
-    Byte center;
-    
-    Byte keySlots[8];
+    CenterContainer centerContainer;
 };
-
 typedef struct MousePadData MousePadData;
+
+
 
 /**
  ポイントの情報を送付する
@@ -350,16 +355,8 @@ typedef struct MousePadData MousePadData;
     
     mousePadData.left = KeysData.left;
     mousePadData.right = KeysData.right;
-    mousePadData.center = KeysData.center;
-    
-    mousePadData.keySlots[0] = KeysData.keySlots[0];
-    mousePadData.keySlots[1] = KeysData.keySlots[1];
-    mousePadData.keySlots[2] = KeysData.keySlots[2];
-    mousePadData.keySlots[3] = KeysData.keySlots[3];
-    mousePadData.keySlots[4] = KeysData.keySlots[4];
-    mousePadData.keySlots[5] = KeysData.keySlots[5];
-    mousePadData.keySlots[6] = KeysData.keySlots[6];
-    mousePadData.keySlots[7] = KeysData.keySlots[7];
+    mousePadData.centerContainer.command = KeysData.centerCommand;
+    mousePadData.centerContainer.wheelMoveAmount = KeysData.centerWheelMoveAmount * wheelSpeedScale;
     
     
     NSData *data = [NSData dataWithBytes:&mousePadData length:sizeof(MousePadData)];

@@ -33,15 +33,15 @@ typedef NS_ENUM(Byte, INPUT_EVENT) {
     BUTTON_EVENT_UPDATED
 };
 
-// 2014/10/16 0:18:30
+// 2014/10/26 10:04:42
 typedef NS_ENUM(Byte, MOUSE_INPUT_EVENT) {
     MOUSE_BUTTON_NONE,
     MOUSE_BUTTON_DOWN,
     MOUSE_BUTTON_DRAG,
     MOUSE_BUTTON_UP,
     MOUSE_DOUBLE_CLICK,
-    MOUSE_WHEEL_UP,
-    MOUSE_WHEEL_DOWN
+    MOUSE_WHEEL_INCREASE,
+    MOUSE_WHEEL_DECREASE
 };
 
 unsigned long sizeOfMousePadData;
@@ -533,7 +533,7 @@ NSDate *lastHeartBeatDate;
         
         
         /*
-         マウス入力とキー入力の解析と再現を行う。
+         マウス入力の解析と再現を行う。
          */
         MousePadData mousePadData;
         [partialData getBytes:&mousePadData length:sizeof(MousePadData)];
@@ -551,14 +551,14 @@ NSDate *lastHeartBeatDate;
         /*
          マウスのボタン入力
          */
-        [self mouseButtonStatusUpdate:emitPoint left:mousePadData.left right:mousePadData.right andCenter:mousePadData.center];
+        [self mouseButtonStatusUpdate:emitPoint left:mousePadData.left right:mousePadData.right andCenter:mousePadData.centerContainer];
         
-        /*
-         キーの入出力
-         */
-        [self keysStatusUpdate:emitPoint
-                      keySlots:mousePadData.keySlots
-         ];
+//        /*
+//         キーの入出力
+//         */
+//        [self keysStatusUpdate:emitPoint
+//                      keySlots:mousePadData.keySlots
+//         ];
     }
 }
 
@@ -568,26 +568,26 @@ NSDate *lastHeartBeatDate;
  */
 - (void) keysStatusUpdate:(CGPoint)inputPoint
                  keySlots:(Byte [])keySlots {
-    for (int i = 0; i < 8; i++) {
-        Byte a = keySlots[i];
-        //        NSLog(@"a %d", a);
-    }
-    //    NSLog(@"key0 %d", key0);
-    //    NSLog(@"key1 %d", key1);
-    //    NSLog(@"key2 %d", key2);
-    //    NSLog(@"key3 %d", key3);//40,,,? 0x28 16  2 + 8
-    //    NSLog(@"key4 %d", key4);
-    //    if (key3 != 0) {
-    //
-    //        [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 23:14:46" withLimitSec:100000 withComment:@"0でなければ、そのキーをオンにする。次に0になったら、そのキーをオフにする。"];
-    //    }
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/26 13:24:58" withLimitSec:0 withComment:@"unused."];
+//    for (int i = 0; i < 8; i++) {
+//        Byte a = keySlots[i];
+//        //        NSLog(@"a %d", a);
+//    }
+//    //    NSLog(@"key0 %d", key0);
+//    //    NSLog(@"key1 %d", key1);
+//    //    NSLog(@"key2 %d", key2);
+//    //    NSLog(@"key3 %d", key3);//40,,,? 0x28 16  2 + 8
+//    //    NSLog(@"key4 %d", key4);
+//    //    if (key3 != 0) {
+//    //
+//    //        [TimeMine setTimeMineLocalizedFormat:@"2014/10/11 23:14:46" withLimitSec:100000 withComment:@"0でなければ、そのキーをオンにする。次に0になったら、そのキーをオフにする。"];
+//    //    }
 }
 
 /*
- マウスのdownを実行する
- 
+ マウスのボタン処理アップデートを行う
  */
-- (void) mouseButtonStatusUpdate:(CGPoint)inputPoint left:(Byte)left right:(Byte)right andCenter:(Byte)center {
+- (void) mouseButtonStatusUpdate:(CGPoint)inputPoint left:(Byte)left right:(Byte)right andCenter:(CenterContainer)centerContainer {
     /*
      マウスの 左/右/その他のボタン
      */
@@ -656,7 +656,7 @@ NSDate *lastHeartBeatDate;
      draggable wheel
      up/down 以外に、increase/decreaseがある
      */
-    switch (center) {
+    switch (centerContainer.command) {
         case MOUSE_BUTTON_DOWN:{
             CGEventRef down = CGEventCreateMouseEvent(CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGEventOtherMouseDown, inputPoint, kCGMouseButtonCenter);
             CGEventPost(kCGHIDEventTap, down);
@@ -682,11 +682,17 @@ NSDate *lastHeartBeatDate;
             break;
         }
             
-        case MOUSE_WHEEL_UP:{
+        case MOUSE_WHEEL_INCREASE:{
+            CGEventRef increase = CGEventCreateScrollWheelEvent (CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGScrollEventUnitPixel, 1, centerContainer.wheelMoveAmount);
+            CGEventPost(kCGHIDEventTap, increase);
+            CFRelease(increase);
             break;
         }
             
-        case MOUSE_WHEEL_DOWN:{
+        case MOUSE_WHEEL_DECREASE:{
+            CGEventRef decrease = CGEventCreateScrollWheelEvent (CGEventSourceCreate(kCGEventSourceStateHIDSystemState), kCGScrollEventUnitPixel, 1, centerContainer.wheelMoveAmount);
+            CGEventPost(kCGHIDEventTap, decrease);
+            CFRelease(decrease);
             break;
         }
             

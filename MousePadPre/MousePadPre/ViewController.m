@@ -34,6 +34,10 @@ MouseIndicatorViewController *mouseIndicateViewCont;
 KeyboardButtonManager *buttonManager;
 
 
+#define DISTANCE_IS_OVER_WHEEL_EVENT    (1.0f)
+#define DISTANCE_IS_OVER_CENTER_MOUSE_DRAGGED   (0.5f)
+
+
 typedef NS_ENUM(Byte, INPUT_EVENT) {
     MOUSE_EVENT_BEGAN,
     MOUSE_EVENT_MOVED,
@@ -41,15 +45,15 @@ typedef NS_ENUM(Byte, INPUT_EVENT) {
     BUTTON_EVENT_UPDATED
 };
 
-// 2014/10/16 0:18:30
+// 2014/10/26 10:04:42
 typedef NS_ENUM(Byte, MOUSE_INPUT_EVENT) {
     MOUSE_BUTTON_NONE,
     MOUSE_BUTTON_DOWN,
     MOUSE_BUTTON_DRAG,
     MOUSE_BUTTON_UP,
     MOUSE_DOUBLE_CLICK,
-    MOUSE_WHEEL_UP,
-    MOUSE_WHEEL_DOWN
+    MOUSE_WHEEL_INCREASE,
+    MOUSE_WHEEL_DECREASE
 };
 
 typedef NS_ENUM(int, VIEW_MESSAGE) {
@@ -59,7 +63,8 @@ typedef NS_ENUM(int, VIEW_MESSAGE) {
 struct MouseButtonsData {
     Byte left;
     Byte right;
-    Byte center;
+    Byte centerCommand;
+    float centerWheelMoveAmount;
 };
 
 typedef struct MouseButtonsData MouseButtonsData;
@@ -68,9 +73,12 @@ bool firstConnectTime;
 
 #define INTERVAL_HEARTBEAT  (1.0f)
 
+
+
+
 - (void)viewDidLoad {
     [TimeMine setTimeMineLocalizedFormat:@"2014/10/25 21:25:14" withLimitSec:100000 withComment:@"アイコンが上に消えちゃうのをなんとかする"];
-    
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/26 2:37:14" withLimitSec:100000 withComment:@"centerの縦をとってホイル扱いする"];
     
     mouseIndicateViewCont = [[MouseIndicatorViewController alloc] initWithBaseview:self.view];
     [super viewDidLoad];
@@ -286,7 +294,8 @@ bool firstConnectTime;
 - (void) resetInputParameter {
     mouseButtonsData.left = MOUSE_BUTTON_NONE;
     mouseButtonsData.right = MOUSE_BUTTON_NONE;
-    mouseButtonsData.center = MOUSE_BUTTON_NONE;
+    mouseButtonsData.centerCommand = MOUSE_BUTTON_NONE;
+    mouseButtonsData.centerWheelMoveAmount = 0.f;
 }
 
 
@@ -426,7 +435,7 @@ MouseButtonsData mouseButtonsData;
         centerButtonTouch = touch;
         [mouseIndicateViewCont turnCenter:YES];
         
-        mouseButtonsData.center = MOUSE_BUTTON_DOWN;
+        mouseButtonsData.centerCommand = MOUSE_BUTTON_DOWN;
     }
 }
 
@@ -436,7 +445,7 @@ MouseButtonsData mouseButtonsData;
     for (UITouch *touch in currentViewTouches) {
         if (touch == leftButtonTouch) mouseButtonsData.left = MOUSE_BUTTON_DRAG;
         if (touch == rightButtonTouch) mouseButtonsData.right = MOUSE_BUTTON_DRAG;
-        if (touch == centerButtonTouch) mouseButtonsData.center = MOUSE_BUTTON_DRAG;
+        if (touch == centerButtonTouch) [self updateCenterEvent:touch withBaseTouch:pointerTouch];
     }
 }
 
@@ -460,14 +469,47 @@ MouseButtonsData mouseButtonsData;
         [mouseIndicateViewCont turnCenter:NO];
         centerButtonTouch = nil;
         
-        mouseButtonsData.center = MOUSE_BUTTON_UP;
+        mouseButtonsData.centerCommand = MOUSE_BUTTON_UP;
     }
+}
+
+/**
+ 
+ */
+- (void) updateCenterEvent:(UITouch *)centerTouch withBaseTouch:(UITouch *)baseTouch {
+    mouseButtonsData.centerWheelMoveAmount = 0.f;
+    float nowY = [centerTouch locationInView:self.view].y;
+    float beforeY = [centerTouch previousLocationInView:self.view].y;
+    
+    float distance = beforeY - nowY;
+
+    // reset
+    mouseButtonsData.centerWheelMoveAmount = 0.f;
+    
+    if (fabsf(distance) < DISTANCE_IS_OVER_WHEEL_EVENT) {
+        if (baseTouch && DISTANCE_IS_OVER_CENTER_MOUSE_DRAGGED < fabsf([baseTouch previousLocationInView:self.view].y - [baseTouch locationInView:self.view].y)) {
+            mouseButtonsData.centerCommand = MOUSE_BUTTON_DRAG;
+            return;
+        }
+    }
+    
+    if (0 < distance) {
+        mouseButtonsData.centerCommand = MOUSE_WHEEL_INCREASE;
+        mouseButtonsData.centerWheelMoveAmount = distance;
+    }
+    
+    if (distance < 0) {
+        mouseButtonsData.centerCommand = MOUSE_WHEEL_DECREASE;
+        mouseButtonsData.centerWheelMoveAmount = distance;
+    }
+    
+    
 }
 
 - (void) resetMouseTouchUp {
     if (mouseButtonsData.left == MOUSE_BUTTON_UP) mouseButtonsData.left = MOUSE_BUTTON_NONE;
     if (mouseButtonsData.right == MOUSE_BUTTON_UP) mouseButtonsData.right = MOUSE_BUTTON_NONE;
-    if (mouseButtonsData.center == MOUSE_BUTTON_UP) mouseButtonsData.center = MOUSE_BUTTON_NONE;
+    if (mouseButtonsData.centerCommand == MOUSE_BUTTON_UP) mouseButtonsData.centerCommand = MOUSE_BUTTON_NONE;
 }
 
 
@@ -489,7 +531,8 @@ MouseButtonsData mouseButtonsData;
      */
     keysData.left = mouseButtonsData.left;
     keysData.right = mouseButtonsData.right;
-    keysData.center = mouseButtonsData.center;
+    keysData.centerCommand = mouseButtonsData.centerCommand;
+    keysData.centerWheelMoveAmount = mouseButtonsData.centerWheelMoveAmount;
     
     switch (connectionType) {
         case CONNECTIONTYPE_BONJOUR:{

@@ -84,29 +84,29 @@ KeysData currentKeysData;
  ボタンが押されたことを受け取る
  */
 - (void) touchDown:(int)index {
-    NSString *input = buttonDict[[NSNumber numberWithInt:index]][@"identity"];
-    int inputType = [buttonDict[[NSNumber numberWithInt:index]][@"inputType"] intValue];
-    
-    switch (inputType) {
-        case INPUT_TYPE_MOUSEBUTTON:{
-            if ([input isEqualToString:@"R"]) {
-                currentKeysData.right = true;
-            } else if ([input isEqualToString:@"L"]) {
-                currentKeysData.left = true;
-            } else if ([input isEqualToString:@"C"]) {
-                currentKeysData.center = true;
-            }
-            break;
-        }
-        case INPUT_TYPE_KEY:{
-            currentKeysData.keySlots[index] = getKeyCodeFromInput(input);
-
-            break;
-        }
-        default:
-            break;
-    }
-    [messenger callParent:BUTTON_MESSAGE_UPDATED, nil];
+//    NSString *input = buttonDict[[NSNumber numberWithInt:index]][@"identity"];
+//    int inputType = [buttonDict[[NSNumber numberWithInt:index]][@"inputType"] intValue];
+//    
+//    switch (inputType) {
+//        case INPUT_TYPE_MOUSEBUTTON:{
+//            if ([input isEqualToString:@"R"]) {
+//                currentKeysData.right = true;
+//            } else if ([input isEqualToString:@"L"]) {
+//                currentKeysData.left = true;
+//            } else if ([input isEqualToString:@"C"]) {
+//                currentKeysData.center = true;
+//            }
+//            break;
+//        }
+//        case INPUT_TYPE_KEY:{
+//            currentKeysData.keySlots[index] = getKeyCodeFromInput(input);
+//
+//            break;
+//        }
+//        default:
+//            break;
+//    }
+//    [messenger callParent:BUTTON_MESSAGE_UPDATED, nil];
 }
 
 Byte getKeyCodeFromInput (NSString *input) {
@@ -120,32 +120,32 @@ Byte getKeyCodeFromInput (NSString *input) {
  ボタンが離されたことを受け取る
  */
 - (void) touchUp:(int)index {
-    NSString *input = buttonDict[[NSNumber numberWithInt:index]][@"identity"];
-    int inputType = [buttonDict[[NSNumber numberWithInt:index]][@"inputType"] intValue];
-    
-    switch (inputType) {
-        case INPUT_TYPE_MOUSEBUTTON:{
-            if ([input isEqualToString:@"R"]) {
-                currentKeysData.right = false;
-            } else if ([input isEqualToString:@"L"]) {
-                currentKeysData.left = false;
-            } else if ([input isEqualToString:@"C"]) {
-                currentKeysData.center = false;
-            }
-            break;
-        }
-        case INPUT_TYPE_KEY:{
-            /*
-             indexに対して、空データを入力する。
-             */
-            currentKeysData.keySlots[index] = 0x00;
-            
-            break;
-        }
-        default:
-            break;
-    }
-    [messenger callParent:BUTTON_MESSAGE_UPDATED, nil];
+    [TimeMine setTimeMineLocalizedFormat:@"2014/10/26 12:41:12" withLimitSec:0 withComment:@"使ってない。ボタンごとに対応する"];
+//    NSString *input = buttonDict[[NSNumber numberWithInt:index]][@"identity"];
+//    int inputType = [buttonDict[[NSNumber numberWithInt:index]][@"inputType"] intValue];
+//    switch (inputType) {
+//        case INPUT_TYPE_MOUSEBUTTON:{
+//            if ([input isEqualToString:@"R"]) {
+//                currentKeysData.right = false;
+//            } else if ([input isEqualToString:@"L"]) {
+//                currentKeysData.left = false;
+//            } else if ([input isEqualToString:@"C"]) {
+//                currentKeysData.center = false;
+//            }
+//            break;
+//        }
+//        case INPUT_TYPE_KEY:{
+//            /*
+//             indexに対して、空データを入力する。
+//             */
+//            currentKeysData.keySlots[index] = 0x00;
+//            
+//            break;
+//        }
+//        default:
+//            break;
+//    }
+//    [messenger callParent:BUTTON_MESSAGE_UPDATED, nil];
 }
 
 /**
