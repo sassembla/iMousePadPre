@@ -261,8 +261,8 @@ NSMutableDictionary *screenInfo;
     
     newUserNotification.actionButtonTitle = [NSString stringWithFormat:@"%d", status];
     
-//    NSString *path = @"";
-//    newUserNotification.contentImage = [[NSImage alloc] initWithContentsOfFile: path];
+    NSString *path = @"keyButtonImage.pdf";
+    newUserNotification.contentImage = [[NSImage alloc] initWithContentsOfFile:path];
     
     if (receive) {
         newUserNotification.hasReplyButton = YES;

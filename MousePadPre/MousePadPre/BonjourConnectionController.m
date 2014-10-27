@@ -12,7 +12,9 @@
 
 #import "Messengers.h"
 
-#define INTERVAL_HEARTBEAT (3.0f)
+#define INTERVAL_HEARTBEAT  (3.0f)
+#define HEARTBEAT_TIMEOUT   (3.5f)
+
 
 @implementation BonjourConnectionController
 
@@ -31,17 +33,34 @@
 - (void) receiver:(NSNotification *)notif {
 
     switch ([messenger execFrom:[messenger myName] viaNotification:notif]) {
+        /*
+         heartbeat action in client of bonjour.
+         */
         case BONJOUR_MESSAGE_HEARTBEAT:
             
             switch (bonjourState) {
-                case STATE_BONJOUR_CONNECTING:
+                case STATE_BONJOUR_CONNECTING:{
                     bonjourState = STATE_BONJOUR_CONNECTING_LONG;
                     break;
-                    
-                case STATE_BONJOUR_CONNECTING_LONG:
-//                    NSLog(@"force reload");
+                }
+            
+                case STATE_BONJOUR_CONNECTING_LONG:{
                     [self resetSearchBonjourNetwork];
                     break;
+                }
+                    
+                case STATE_BONJOUR_CONNECTED:{
+                    if (HEARTBEAT_TIMEOUT < [[NSDate date] timeIntervalSinceDate:lastHeartBeatDate]) {
+                        bonjourState = STATE_BONJOUR_DISCONNECTED;
+                        NSLog(@"HEARTBEAT_TIMEOUT");
+                        [messenger callParent:BONJOUR_MESSAGE_DISCONNECTED,
+                         [messenger tag:@"disconnectedServerName" val:@"mousePadServer"],
+                         [messenger tag:@"reason" val:@"heartbeat failed."],
+                         nil];
+                    }
+                    break;
+                }
+                    
                 default:
                     break;
             }
@@ -153,7 +172,11 @@ NSOutputStream *bonjourOutputStream;
  */
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didRemoveService:(NSNetService *)aNetService moreComing:(BOOL)moreComing {
     bonjourState = STATE_BONJOUR_DISCONNECTED;
-    [messenger callParent:BONJOUR_MESSAGE_DISCONNECTED, [messenger tag:@"disconnectedServerName" val:@"mousePadServer"], nil];
+    NSLog(@"didRemoveService %@", aNetService);
+    [messenger callParent:BONJOUR_MESSAGE_DISCONNECTED,
+     [messenger tag:@"disconnectedServerName" val:@"mousePadServer"],
+     [messenger tag:@"reason" val:@"didRemoveService"],
+     nil];
 }
 
 /* Sent to the NSNetServiceBrowser instance's delegate for each service discovered. If there are more services, moreComing will be YES. If for some reason handling discovered services requires significant processing, accumulating services until moreComing is NO and then doing the processing in bulk fashion may be desirable.
@@ -272,6 +295,7 @@ NSOutputStream *bonjourOutputStream;
 - (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode {
     if ((eventCode & NSStreamEventOpenCompleted) != 0) {
         bonjourState = STATE_BONJOUR_CONNECTED;
+        lastHeartBeatDate = [NSDate date];
         [messenger callParent:BONJOUR_MESSAGE_CONNECTED, [messenger tag:@"connectedServerName" val:@"mousePadServer"], nil];
     }
     
@@ -288,6 +312,7 @@ NSOutputStream *bonjourOutputStream;
         NSError *theError = [aStream streamError];
         
         bonjourState = STATE_BONJOUR_DISCONNECTED;
+        NSLog(@"NSStreamEventErrorOccurred");
         [messenger callParent:BONJOUR_MESSAGE_DISCONNECTED,
          [messenger tag:@"disconnectedServerName" val:@"mousePadServer"],
          [messenger tag:@"reason" val:[NSString stringWithFormat:@"NSStreamEventErrorOccurred %@", theError]],
@@ -296,6 +321,7 @@ NSOutputStream *bonjourOutputStream;
     
     if ((eventCode & NSStreamEventEndEncountered) != 0) {
         bonjourState = STATE_BONJOUR_DISCONNECTED;
+        NSLog(@"NSStreamEventEndEncountered");
         [messenger callParent:BONJOUR_MESSAGE_DISCONNECTED,
          [messenger tag:@"disconnectedServerName" val:@"mousePadServer"],
          [messenger tag:@"reason" val:@"NSStreamEventEndEncountered"],
@@ -363,10 +389,18 @@ typedef struct MousePadData MousePadData;
     
     NSInteger written = [bonjourOutputStream write:[data bytes] maxLength:[data length]];
     if (written <= 0) {
-        // should start reconnection,, but other error will cover this point.
         NSLog(@"size is under 0");
+        
+        [messenger callParent:BONJOUR_MESSAGE_DISCONNECTED,
+         [messenger tag:@"disconnectedServerName" val:@"mousePadServer"],
+         [messenger tag:@"reason" val:@"written size is 0, type 1."],
+         nil];
     }
 }
+
+
+
+NSDate *lastHeartBeatDate;
 
 - (void) sendHeartBeat {
     if (![self isBonjourConnected]) return;
@@ -380,7 +414,16 @@ typedef struct MousePadData MousePadData;
     NSInteger written = [bonjourOutputStream write:[data bytes] maxLength:[data length]];
     if (written <= 0) {
         NSLog(@"size2 is under 0");
+        
+        [messenger callParent:BONJOUR_MESSAGE_DISCONNECTED,
+         [messenger tag:@"disconnectedServerName" val:@"mousePadServer"],
+         [messenger tag:@"reason" val:@"written size is 0, type 2."],
+         nil];
+        
+        return;
     }
+    
+    lastHeartBeatDate = [NSDate date];
 }
 
 

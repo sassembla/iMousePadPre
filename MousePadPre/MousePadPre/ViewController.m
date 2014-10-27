@@ -57,7 +57,8 @@ typedef NS_ENUM(Byte, MOUSE_INPUT_EVENT) {
 };
 
 typedef NS_ENUM(int, VIEW_MESSAGE) {
-    VIEW_MESSAGE_HEARTBEAT
+    VIEW_MESSAGE_HEARTBEAT,
+    VIEW_MESSAGE_RECONNECT
 };
 
 struct MouseButtonsData {
@@ -77,7 +78,6 @@ bool firstConnectTime;
 
 
 - (void)viewDidLoad {
-    
     mouseIndicateViewCont = [[MouseIndicatorViewController alloc] initWithBaseview:self.view];
     [super viewDidLoad];
     
@@ -218,7 +218,9 @@ bool firstConnectTime;
             NSString *disconnectedReason = paramsDict[@"reason"];
             [_infoMessage setText:disconnectedReason];
             
-            [self reconnect:nil];
+            [messenger callMyself:VIEW_MESSAGE_RECONNECT,
+             [messenger withDelay:2.0f],
+             nil];
             break;
         }
             
@@ -262,6 +264,11 @@ bool firstConnectTime;
              nil];
             break;
         }
+            
+        case VIEW_MESSAGE_RECONNECT:{
+            [self reconnect:nil];
+            break;
+        }
         default:
             break;
     }
@@ -288,12 +295,25 @@ bool firstConnectTime;
     }
 }
 
-
+/**
+ タッチポイントのリセットを行う
+ */
 - (void) resetInputParameter {
     mouseButtonsData.left = MOUSE_BUTTON_NONE;
     mouseButtonsData.right = MOUSE_BUTTON_NONE;
     mouseButtonsData.centerCommand = MOUSE_BUTTON_NONE;
     mouseButtonsData.centerWheelMoveAmount = 0.f;
+    
+    pointerTouch = nil;
+    
+    leftButtonTouch = nil;
+    rightButtonTouch = nil;
+    centerButtonTouch = nil;
+    
+    [mouseIndicateViewCont turnLeft:NO];
+    [mouseIndicateViewCont turnRight:NO];
+    [mouseIndicateViewCont turnCenter:NO];
+
 }
 
 
@@ -491,14 +511,14 @@ MouseButtonsData mouseButtonsData;
         }
     }
     
-    if (0 < distance) {
+    if (distance < 0) {
         mouseButtonsData.centerCommand = MOUSE_WHEEL_INCREASE;
-        mouseButtonsData.centerWheelMoveAmount = distance;
+        mouseButtonsData.centerWheelMoveAmount = -distance;
     }
     
-    if (distance < 0) {
+    if (0 < distance) {
         mouseButtonsData.centerCommand = MOUSE_WHEEL_DECREASE;
-        mouseButtonsData.centerWheelMoveAmount = distance;
+        mouseButtonsData.centerWheelMoveAmount = -distance;
     }
     
     

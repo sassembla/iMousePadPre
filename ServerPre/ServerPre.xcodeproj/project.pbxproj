@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		33002A6D19FD1F3300CEF588 /* keyButtonImage.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 33002A6C19FD1F3300CEF588 /* keyButtonImage.pdf */; };
 		3347511019F8D353003173D5 /* KSMessenger.m in Sources */ = {isa = PBXBuildFile; fileRef = 3347510F19F8D353003173D5 /* KSMessenger.m */; };
 		335C359319D17C1A004CD23C /* TimeMine.m in Sources */ = {isa = PBXBuildFile; fileRef = 335C359219D17C1A004CD23C /* TimeMine.m */; };
 		33C6BCE819F2052600DFBCEB /* ServerPreMain.m in Sources */ = {isa = PBXBuildFile; fileRef = 33C6BCE719F2052600DFBCEB /* ServerPreMain.m */; };
@@ -26,6 +27,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		33002A6C19FD1F3300CEF588 /* keyButtonImage.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = keyButtonImage.pdf; sourceTree = "<group>"; };
 		3347510E19F8D353003173D5 /* KSMessenger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KSMessenger.h; sourceTree = "<group>"; };
 		3347510F19F8D353003173D5 /* KSMessenger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KSMessenger.m; sourceTree = "<group>"; };
 		335C359119D17C1A004CD23C /* TimeMine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimeMine.h; sourceTree = "<group>"; };
@@ -81,6 +83,7 @@
 		33FA777219CABCF600D5C113 = {
 			isa = PBXGroup;
 			children = (
+				33002A6C19FD1F3300CEF588 /* keyButtonImage.pdf */,
 				3347511119F8D357003173D5 /* Messenger */,
 				335C359419D17C1D004CD23C /* TimeAssert */,
 				33FA777D19CABCF600D5C113 /* ServerPre */,
@@ -216,6 +219,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				33002A6D19FD1F3300CEF588 /* keyButtonImage.pdf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

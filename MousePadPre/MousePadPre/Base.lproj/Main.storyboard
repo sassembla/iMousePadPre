@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6245" systemVersion="13F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
     <dependencies>
+        <deployment defaultVersion="1792" identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6238"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
@@ -35,16 +36,31 @@
                                 <color key="textColor" white="0.5" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PT2-mz-mZa">
+                                <rect key="frame" x="394" y="365" width="211" height="235"/>
+                                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="211" id="Ifc-be-IuF"/>
+                                    <constraint firstAttribute="height" constant="235" id="mfb-dk-zEl"/>
+                                </constraints>
+                                <color key="tintColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                <state key="normal" title="Button">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstAttribute="trailingMargin" secondItem="PT2-mz-mZa" secondAttribute="trailing" constant="-21" id="0vK-iI-B9Y"/>
                             <constraint firstItem="l1p-C8-XsG" firstAttribute="trailing" secondItem="8bC-Xf-vdC" secondAttribute="trailingMargin" id="7J2-wN-CV9"/>
                             <constraint firstItem="OZZ-Gk-l4v" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="5" id="8fd-H2-qHe"/>
                             <constraint firstItem="l1p-C8-XsG" firstAttribute="leading" secondItem="OZZ-Gk-l4v" secondAttribute="trailing" constant="8" id="RM6-Ag-wAx"/>
                             <constraint firstItem="l1p-C8-XsG" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" id="TVc-xt-kxC"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="PT2-mz-mZa" secondAttribute="bottom" id="ViH-te-5s5"/>
                             <constraint firstItem="BcF-3j-XWI" firstAttribute="trailing" secondItem="8bC-Xf-vdC" secondAttribute="trailingMargin" id="bye-bo-99K"/>
                             <constraint firstItem="l1p-C8-XsG" firstAttribute="leading" secondItem="OZZ-Gk-l4v" secondAttribute="trailing" constant="8" id="cIz-Dj-eii"/>
                             <constraint firstItem="l1p-C8-XsG" firstAttribute="trailing" secondItem="8bC-Xf-vdC" secondAttribute="trailingMargin" id="srf-PQ-l7i"/>
+                            <constraint firstItem="PT2-mz-mZa" firstAttribute="trailing" secondItem="wfy-db-euE" secondAttribute="trailing" constant="5" id="ujI-WA-hcY"/>
                             <constraint firstItem="BcF-3j-XWI" firstAttribute="top" secondItem="l1p-C8-XsG" secondAttribute="bottom" constant="8" id="yfw-VM-dhJ"/>
                         </constraints>
                         <variation key="default">
